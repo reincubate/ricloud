@@ -32,7 +32,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-with open('README.md', 'rb') as fin:
+with open('README.rst', 'rb') as fin:
     README = fin.read()
 
 setup(name=PACKAGE_NAME,
