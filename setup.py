@@ -23,7 +23,7 @@ tests_require = [
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
-        self.test_args = ['%s/tests/' % PACKAGE_NAME]
+        self.test_args = ['{}/tests/'.format(PACKAGE_NAME)]
         self.test_suite = True
 
     def run_tests(self):
@@ -44,11 +44,12 @@ setup(name=PACKAGE_NAME,
     author_email='ben@reincubate.com',
     license='AGPLv3',
     packages=[PACKAGE_NAME, ],
-    package_data={PACKAGE_NAME: ['%s.ini' % PACKAGE_NAME, ], },
+    package_data={PACKAGE_NAME: ['{}.ini'.format(PACKAGE_NAME), ], },
     install_requires=install_requires,
     extras_require={
         'tests': tests_require,
     },
+    download_url = 'https://github.com/reincubate/{package}/tarball/v{version}'.format(package=PACKAGE_NAME, version=__version__),
     tests_require=tests_require,
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Environment :: Console',
