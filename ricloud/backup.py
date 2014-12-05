@@ -12,6 +12,8 @@ class BackupClient(object):
     DATA_CONTACTS = 16
     DATA_INSTALLED_APPS = 32
 
+    DATA_WEB_CONTACTS = 64
+
     AVAILABLE_DATA = (
             (DATA_SMS,              'SMS Messages'),
             (DATA_PHOTOS,           'Photos and Videos'),
@@ -19,6 +21,8 @@ class BackupClient(object):
             (DATA_CALL_HISTORY,     'Call History'),
             (DATA_CONTACTS,         'Contacts'),
             (DATA_INSTALLED_APPS,   'Installed Apps'),
+
+            (DATA_WEB_CONTACTS,     'Contacts stored on www.icloud.com'),
         )
 
     MIN_REQUEST_DATE = datetime.datetime(year=1900, month=1, day=1)
@@ -27,14 +31,14 @@ class BackupClient(object):
         self.api = api
 
     def request_data(self, device_id, data_mask=None, since=None):
-        """Pull data from icloud from a given point in time.
+        """Pull data from iCloud from a given point in time.
 
         Arguments:
         device_id   -- Device ID to pull data for
 
         Keyword Arguments:
         data_mask   -- Bit Mask representing what data to download
-        since       -- Datetime to retreive data from (i.e. SMS received
+        since       -- Datetime to retrieve data from (i.e. SMS received
                        after this point)
         """
         assert self.api.session_key is not None, 'Session key is required, please log in.'
