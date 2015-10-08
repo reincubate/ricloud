@@ -5,6 +5,8 @@ This is a Python library for interaction with Reincubate's iCloud API. The Reinc
 
 The API includes functionality for extraction, manipulation and recovery of many types of iOS data, and has functionality to support bulk, scheduled, and realtime data access. 
 
+It fully supports iOS 9 CloudKit-based iCloud backups.
+
 Installation & usage
 --------------------
 
@@ -43,6 +45,47 @@ This file should have the following details:
     key =
     apple_id =
     password =
+
+Sample script
+~~~~~~~~~~~~~
+
+Here's a sample script to demonstrate how easy it is to pull data down with the API.
+
+.. code-block:: pycon
+
+    from datetime import datetime
+    import json
+
+    from ricloud.api import RiCloud
+    from ricloud.backup import BackupClient
+
+    api = RiCloud()
+    # OR
+    # api = RiCloud(user, key)
+
+    # Login to your iCloud
+    # Note: if you have two factor authentication enabled then you'll need
+    #       submit a challenge request and a response, which the app handles
+    api.login(APPLE_ID, APPLE_PASSWORD)
+
+    # Now we have a list of the devices connected to this account stored in `api.devices`
+    # For this sample script, let's just look at the first device
+    chosen_device = api.devices.keys()[0]
+
+    # Build a bit mask of the data we want to access
+    # Note: if you don't set this then the API will supply all the information
+    #       you account has access to.
+    requested_data = BackupClient.DATA_SMS | BackupClient.DATA_INSTALLED_APPS
+
+    # Ask for any new data since the Jan 1st 2015
+    # Note: if you don't supply this, the API will return ALL data available
+    since = datetime(2015, 1, 1)
+
+    # Fire the request
+    data = api.backup_client.request_data(chosen_device, data_mask=requested_data, since=since)
+
+    # Print the output to console
+    print json.dumps(data, indent=2)
 
 Need more functionality?
 ------------------------
