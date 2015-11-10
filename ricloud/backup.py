@@ -11,8 +11,10 @@ class BackupClient(object):
     DATA_CALL_HISTORY = 8
     DATA_CONTACTS = 16
     DATA_INSTALLED_APPS = 32
+    DATA_WHATSAPP_MESSAGES = 512
 
     DATA_WEB_CONTACTS = 64
+    DATA_WEB_LOCATION = 256
 
     AVAILABLE_DATA = (
             (DATA_SMS,              'SMS Messages'),
@@ -21,8 +23,10 @@ class BackupClient(object):
             (DATA_CALL_HISTORY,     'Call History'),
             (DATA_CONTACTS,         'Contacts'),
             (DATA_INSTALLED_APPS,   'Installed Apps'),
+            (DATA_WHATSAPP_MESSAGES,   'WhatsApp Messages'),
 
             (DATA_WEB_CONTACTS,     'Contacts stored on www.icloud.com'),
+            (DATA_WEB_LOCATION,     'Location stored on www.icloud.com'),
         )
 
     MIN_REQUEST_DATE = datetime.datetime(year=1900, month=1, day=1)
