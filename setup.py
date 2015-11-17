@@ -1,6 +1,5 @@
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
-from pypandoc import convert
 import sys
 
 from ricloud import __version__
@@ -33,7 +32,13 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-read_md = lambda f: convert(f, 'rst')
+try:
+    # This is only important when pushing to PyPi, fine to fail otherwise.
+    from pypandoc import convert
+    read_md = lambda f: convert(f, 'rst', 'md')
+except ImportError:
+    print("warning: pypandoc module not found, could not convert Markdown to RST")
+    read_md = lambda f: open(f, 'r').read()
 
 setup(name=PACKAGE_NAME,
     version=__version__,
