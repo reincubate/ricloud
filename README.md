@@ -80,7 +80,7 @@ To choose which data types to return in the feed, users can pass a mask of data 
 requested_data = BackupClient.DATA_SMS | BackupClient.DATA_PHOTOS
 ```
 
-If no selection is made, the API will return all the data available from all the apps. The following is an example of how to select which data to retrieve.
+If no selection is made, the API will return all available data available. The following is an example of how to select which data to retrieve.
 
 #### Device-specific iOS data
 
@@ -95,24 +95,24 @@ requested_data = BackupClient.DATA_PHOTOS
 requested_data = BackupClient.DATA_BROWSER_HISTORY
 
 # For call history retrieval
-requested_data = BackupClient.Data_CALL_HISTORY
+requested_data = BackupClient.DATA_CALL_HISTORY
 
 # For list of installed apps
 requested_data = BackupClient.DATA_INSTALLED_APPS
+
+# For device contact retrieval
+requested_data = BackupClient.DATA_CONTACTS
 ```
 
 #### iCloud account-specific data
 
 ```python
-# For device contact retrieval
-requested_data = Backupclient.DATA_CONTACTS
-
 # For iCloud contact retrieval
 requested_data = BackupClient.DATA_WEB_CONTACTS
 
 # For location retrieval
-requested_data = BackupCLient.DATA_WEB_LOCATION
-````
+requested_data = BackupClient.DATA_WEB_LOCATION
+```
 
 #### App-specific data
 
@@ -171,10 +171,10 @@ for sms in data['sms']:
 
 ### Using the raw file access API
 
-The raw file access API is available where the JSON feeds don't provide enough,
-although as noted above, it is invariably better to use the JSON feeds. Use-cases
-of this include downloading message attachments, or directly downloading more
-esoteric files from the iCloud.
+The raw file access API is available for downloading message attachments, or
+directly downloading more esoteric files from the iCloud.
+
+> As noted above, it is invariably better to use the JSON feeds when working with app data. The JSON feeds provide faster and more accurate data access.
 
 The `BackupClient.download_file` method takes a ``file_id``, ``device_id`` and a
 file handle to write the file to. `file_id`s are built from SHA-1 hashes of a
