@@ -1,5 +1,6 @@
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
+from pypandoc import convert
 import sys
 
 from ricloud import __version__
@@ -32,13 +33,12 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-with open('README.rst', 'rb') as fin:
-    README = fin.read()
+read_md = lambda f: convert(f, 'rst')
 
 setup(name=PACKAGE_NAME,
     version=__version__,
     description='Client for Reincubate\'s iCloud API',
-    long_description=README,
+    long_description=read_md('README.md'),
     url='https://github.com/reincubate/ricloud',
     author='Ben Emery',
     author_email='ben@reincubate.com',
