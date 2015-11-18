@@ -67,6 +67,24 @@ api.login(APPLE_ID, APPLE_PASSWORD)
 print api.devices
 ```
 
+That `api.devices` dictionary contains data in this format:
+
+```python
+{u'7c7fba66680ef796b916b067077cc246adacf01d': {
+    u'colour': u'#e4e7e8',
+    u'device_name': u"Renate's iPhone 6S",
+    u'latest-backup': u'2015-11-17 16:46:39.000000',
+    u'model': u'N71mAP',
+    u'name': u'iPhone 6s'},
+ u'8e281be6657d4523710d96341b6f86ba89b56df7': {
+    u'colour': u'#e1e4e3',
+    u'device_name': u"Renate's iPad",
+    u'latest-backup': u'2015-11-13 19:35:52.000000',
+    u'model': u'J98aAP',
+    u'name': u'iPad Pro'},
+}
+```
+
 ### Using the JSON feed API
 
 The API is able to return data retrieved from a wide range of apps, and enumerations for some of these are baked into the sample API. However, we have many other types of app feeds available, including Viber, Kik, WeChat, Line, and others.
