@@ -20,12 +20,6 @@ The library can be installed with a single command:
 $ pip install ricloud
 ```
 
-A sample script is included which provides an example of how the API can be used to access a range of datatypes in a way that is compatible with Apple's 2FA mechanism.
-
-```bash
-$ python -c "from ricloud.sample_script import main; main();"
-```
-
 ### Configuration
 
 The API relies on a set of security credentials, which are stored in an ``ricloud.ini`` file. This package ships with a default configuration file which enables limited access to the API for demonstration purposes. Full access can be gained by contacting [Reincubate](mailto:enterprise@reincubate.com).
@@ -50,6 +44,55 @@ password =
 
 ## Usage
 
+A sample script is included which provides an example of how the API can be used to access a range of datatypes in a way that is compatible with Apple's 2FA mechanism. The sample script can be run like this:
+
+```bash
+$ python -c "from ricloud.sample_script import main; main();"
+```
+
+Here's what the output from the sample script looks like:
+
+```
+Please enter your Apple ID: renate@reincubate.com
+Please enter your password:
+
+2FA has been enabled, choose a trusted device:
+0 - ********16
+1 - Renate's iPad - iPad Pro
+2 - Renate's iPhone - iPhone 6s
+
+Choose a device by specifying its index (e.g. 0): 2
+
+A code has been sent to your device.
+Code:  4967
+
+Your devices:
+0 - Renate's iPad [model: J71AP, colour: #3b3b3c, latest-backup: 2015-06-23 07:00:00.000000]
+1 - Renate's iPhone [model: N71mAP, colour: #e4e7e8, latest-backup: 2015-10-13 19:07:48.000000]
+2 - Renate's iPad [model: J98aAP, colour: #e1e4e3, latest-backup: 2015-11-15 20:36:48.000000]
+3 - Renate's iPhone [model: N71AP, colour: #e4e7e8, latest-backup: 2015-11-17 20:51:36.000000]
+4 - Renate's US iPhone [model: N49AP, colour: #3b3b3c, latest-backup: 2015-05-06 07:00:00.000000]
+5 - Renate's iPhone [model: N61AP, colour: #e1e4e3, latest-backup: 2015-10-21 15:53:26.000000]
+
+Choose a device by specifying its index (e.g. 0): 3
+
+What would you like to download?
+
+1     Messages
+2     Photos and Videos
+4     Browser History
+8     Call History
+16    Contacts
+32    Installed Apps
+64    Contacts (live)
+256   Location (live)
+512   WhatsApp Messages
+1024  Skype Messages
+
+Mask (0) for all:  0
+Complete! All data is in the directory "out".
+```
+
 ### Authentication against the API and listing iCloud data
 
 ```python
@@ -72,7 +115,7 @@ That `api.devices` dictionary contains data in this format:
 ```python
 {u'7c7fba66680ef796b916b067077cc246adacf01d': {
     u'colour': u'#e4e7e8',
-    u'device_name': u"Renate's iPhone 6S",
+    u'device_name': u"Renate's iPhone",
     u'latest-backup': u'2015-11-17 16:46:39.000000',
     u'model': u'N71mAP',
     u'name': u'iPhone 6s'},
@@ -217,6 +260,14 @@ Common hash keys associated with apps for direct file access include the followi
 ### The JSON feed returns a message: "Contact enterprise@reincubate.com for access to this data"
 
 This message will be returned when the demonstration key is used. Please contact us for a trial key with access to more data. If you already have a trial key, are you correctly specifying it in your `~/.ricloud.ini` file? Note that the file has a period at the start.
+
+### I'm trying to pull an app's database file by `file_id` but I'm not getting any data back
+
+`file_id`s are derived from an SHA-1 hash of the file's path and name, so they are constant for any given file. If the file's attributes or content change, it won't affect the hash.
+
+However, sometimes app authors change the name of the file they store data in (and sometimes Apple do in new iOS releases). That's why, for instance, there several different `file_id`s to examine when getting WhatsApp data. These `file_id`s could be changed any time an app is updated.
+
+This is one of the reasons we recommend users pull our JSON feeds instead of working with files and manipulating them directly. Using the JSON feeds, one needn't worry over the efficacy of SQL, PList parsing or undeletion, and the JSON feeds are quicker and much simpler to work with.
 
 ## Need more functionality?
 
