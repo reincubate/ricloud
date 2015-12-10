@@ -84,10 +84,14 @@ What would you like to download?
 8     Call History
 16    Contacts
 32    Installed Apps
-64    Contacts (live)
-256   Location (live)
 512   WhatsApp Messages
 1024  Skype Messages
+2048  Appointments
+4096  Line Messages
+8192  Kik Messages
+16384 Viber Messages
+64    Contacts (live)
+256   Location (live)
 
 Mask (0) for all:  0
 Complete! All data is in the directory "out".
@@ -163,6 +167,9 @@ requested_data = BackupClient.DATA_INSTALLED_APPS
 
 # For device contact retrieval
 requested_data = BackupClient.DATA_CONTACTS
+
+# For appointment retrieval
+requested_data = BackupClient.DATA_APPOINTMENTS
 ```
 
 #### iCloud account-specific data
@@ -183,6 +190,15 @@ requested_data = BackupClient.DATA_WHATSAPP_MESSAGES
 
 # For Skype message retrieval
 requested_data = BackupClient.DATA_SKYPE_MESSAGES
+
+# For Line message retrieval
+requested_data = BackupClient.DATA_LINE_MESSAGES
+
+# For Viber message retrieval
+requested_data = BackupClient.DATA_VIBER_MESSAGES
+
+# For Kik message retrieval
+requested_data = BackupClient.DATA_KIK_MESSAGES
 ```
 
 #### Simple sample script
