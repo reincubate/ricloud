@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.5
+* Added more data types (Viber, Kik, Line and Calendar appointments)
+
 ## 1.0.4
 * Enhanced documentation.
 

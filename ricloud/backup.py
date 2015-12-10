@@ -13,6 +13,10 @@ class BackupClient(object):
     DATA_INSTALLED_APPS = 32
     DATA_WHATSAPP_MESSAGES = 512
     DATA_SKYPE_MESSAGES = 1024
+    DATA_APPOINTMENTS = 2048
+    DATA_LINE_MESSAGES = 4096
+    DATA_KIK_MESSAGES = 8192
+    DATA_VIBER_MESSAGES = 16384
 
     DATA_WEB_CONTACTS = 64
     DATA_WEB_LOCATION = 256
@@ -26,6 +30,11 @@ class BackupClient(object):
             (DATA_INSTALLED_APPS,   'Installed Apps'),
             (DATA_WHATSAPP_MESSAGES,   'WhatsApp Messages'),
             (DATA_SKYPE_MESSAGES,   'Skype Messages'),
+            (DATA_APPOINTMENTS,   'Appointments'),
+            (DATA_LINE_MESSAGES,   'Line Messages'),
+            (DATA_KIK_MESSAGES,   'Kik Messages'),
+            (DATA_VIBER_MESSAGES,   'Viber Messages'),
+
 
             (DATA_WEB_CONTACTS,     'Contacts (live)'),
             (DATA_WEB_LOCATION,     'Location (live)'),
