@@ -1,16 +1,8 @@
-# ricloud: iCloud access made easy
+# ricloud-py: iCloud access made easy
 
-This is a sample Python library for interaction with Reincubate's iCloud API. The Reincubate iCloud API provides powerful programmatic iCloud access to investigators, application developers and integrators. It is RESTful and makes many commonly-accessed forms of data available as JSON feeds.
+This is the sample Python client for Reincubate's [iCloud API](https://www.reincubate.com/labs/icloud-api/?utm_source=github&utm_medium=ricloud-py&utm_campaign=ricloud).
 
-The API includes functionality for extraction, manipulation and recovery of many types of iOS data, and has functionality to support bulk, scheduled, and realtime data access. It fully supports iOS 9 CloudKit-based iCloud backups, and backups created with the new A9 chipsets.
-
-## JSON feed vs raw file access
-
-There are two core parts to the API: the JSON feed mechanism, and the raw file access mechanism. The JSON feeds come with a number of advantages:
-
- * Access to feed data is generally faster and scales better than raw file access
- * App data stored in databases and Plists is prone to change in format and location over time; the JSON feed abstracts away that complexity so that you needn't worry.
- * Users of the JSON feeds are able to take advantage of Reincubate's proprietary techniques in extracting app data, such that the resultant data is more accurate.
+> Refer to the comprehensive [iCloud API documentation](https://www.reincubate.com/contact/support/icloud-api/?utm_source=github&utm_medium=ricloud-py&utm_campaign=ricloud) for a fuller picture of the API's capabilities, specifications, and benefits.
 
 ## Installation
 
@@ -22,7 +14,7 @@ $ pip install ricloud
 
 ### Configuration
 
-The API relies on a set of security credentials, which are stored in an ``ricloud.ini`` file. This package ships with a default configuration file which enables limited access to the API for demonstration purposes. Full access can be gained by contacting [Reincubate](mailto:enterprise@reincubate.com).
+The API relies on a set of security credentials, which are stored in an ``ricloud.ini`` file. This package ships with a default configuration file which enables limited access to the API for demonstration purposes.
 
 The default credentials can be overridden by creating an override file named ``.ricloud.ini`` in the running user's ``HOME`` directory. Alternately, an ``RICLOUD_CONF`` environment variable can be set, specifying the full path and filename of the configuration file.
 
@@ -262,49 +254,28 @@ out = open(filename, 'wb')
 api.backup_client.download_file(device_id, file_id, out)
 ```
 
-#### Sample `file_id`s
-
-Common hash keys associated with apps for direct file access include the following.
-
-* SMS: `3d0d7e5fb2ce288813306e4d4636395e047a3d28`
-* WhatsApp: `1b6b187a1b60b9ae8b720c79e2c67f472bab09c0`, `1c6a49018bcace96656e4fe8f08d572ce071b92c`, `7c7fba66680ef796b916b067077cc246adacf01d`
-* Viber: `b39bac0d347adfaf172527f97c3a5fa3df726a3a`
-* Kik: `8e281be6657d4523710d96341b6f86ba89b56df7`
-
 ## Troubleshooting
 
-### The JSON feed returns a message: "Contact enterprise@reincubate.com for access to this data"
+See the iCloud API [support page](https://www.reincubate.com/contact/support/icloud-api/?utm_source=github&utm_medium=ricloud-py&utm_campaign=ricloud).
 
-This message will be returned when the demonstration key is used. Please contact us for a trial key with access to more data. If you already have a trial key, are you correctly specifying it in your `~/.ricloud.ini` file? Note that the file has a period at the start.
+## <a name="more"></a>Need more functionality?
 
-### I'm trying to pull an app's database file by `file_id` but I'm not getting any data back
+Reincubate's vision is to provide data access, extraction and recovery technology for all app platforms, be they mobile, desktop, web, appliance or in-vehicle.
 
-`file_id`s are derived from an SHA-1 hash of the file's path and name, so they are constant for any given file. If the file's attributes or content change, it won't affect the hash.
+The company was founded in 2008 and was first to market with both iOS and iCloud data extraction technology. With over half a decade's experience helping law enforcement and security organisations access iOS data, Reincubate has licensed software to government, child protection and corporate clients around the world.
 
-However, sometimes app authors change the name of the file they store data in (and sometimes Apple do in new iOS releases). That's why, for instance, there several different `file_id`s to examine when getting WhatsApp data. These `file_id`s could be changed any time an app is updated.
-
-This is one of the reasons we recommend users pull our JSON feeds instead of working with files and manipulating them directly. Using the JSON feeds, one needn't worry over the efficacy of SQL, PList parsing or undeletion, and the JSON feeds are quicker and much simpler to work with.
-
-## Need more functionality?
-
-Reincubate builds world class iOS and app data access and recovery technology. The company was founded in 2008 and was first to market with iOS backup extraction technology, consumer backup decryption, and more recently with enterprise iCloud support. Clients include law enforcement, government and security organisations in the US and internationally, and to corporations as large as Microsoft and IBM.
-
-> Users with simpler needs may wish to try the [iPhone Backup Extractor](http://www.iphonebackupextractor.com), which provides a set of iCloud functionality better suited to consumers.
-
-With six years' experience helping police forces, law firms and forensics labs access iOS data, the company can help enterprise users with:
+The company can help users with:
 
 * iCloud access and data recovery
 * Recovery of data deleted from SQLite databases
 * Bulk iOS data recovery
 * Forensic examination of iOS data
-* Passcode, password and keybag analysis
+* Passcode, password, keybag and keychain analysis
 * Custom iOS app data extraction
 * Advanced PList, TypedStream and Mbdb manipulation
 
-Contact [Reincubate](mailto:enterprise@reincubate.com) for more information, or see our site at [reincubate.com](https://www.reincubate.com).
+Contact the [enterprise team](mailto:enterprise@reincubate.com) for more information, or see [reincubate.com](https://www.reincubate.com/?utm_source=github&utm_medium=ricloud-py&utm_campaign=ricloud).
 
 ## Terms & license
 
-Users must not use the API in any way that is unlawful, illegal, fraudulent or harmful; or in connection with any unlawful, illegal, fraudulent or harmful purpose or activity. See the `LICENSE` file. Full terms are available from [Reincubate](mailto:enterprise@reincubate.com).
-
-Copyright &copy; Reincubate Ltd, 2011 - 2015, all rights reserved.
+See the `LICENSE.md` file for details on this implentation's license. Users must not use the API in any way that is unlawful, illegal, fraudulent or harmful; or in connection with any unlawful, illegal, fraudulent or harmful purpose or activity. Full terms are available from the [enterprise team](mailto:enterprise@reincubate.com).
