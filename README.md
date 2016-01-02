@@ -274,8 +274,8 @@ The company can help users with:
 * Custom iOS app data extraction
 * Advanced PList, TypedStream and Mbdb manipulation
 
-Contact the [enterprise team](mailto:enterprise@reincubate.com) for more information, or see [reincubate.com](https://www.reincubate.com/?utm_source=github&utm_medium=ricloud-py&utm_campaign=ricloud).
+Contact [Reincubate](https://www.reincubate.com/?utm_source=github&utm_medium=ricloud-py&utm_campaign=ricloud) for more information.
 
 ## Terms & license
 
-See the `LICENSE.md` file for details on this implentation's license. Users must not use the API in any way that is unlawful, illegal, fraudulent or harmful; or in connection with any unlawful, illegal, fraudulent or harmful purpose or activity. Full terms are available from the [enterprise team](mailto:enterprise@reincubate.com).
+See the `LICENSE.md` file for details on this implentation's license. Users must not use the API in any way that is unlawful, illegal, fraudulent or harmful; or in connection with any unlawful, illegal, fraudulent or harmful purpose or activity.
