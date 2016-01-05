@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.7
+* Fixed documentation issue.
+
 ## 1.0.6
 * Fixed configuration issue on Windows.
 
