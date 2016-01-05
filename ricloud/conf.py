@@ -10,7 +10,7 @@ def get_config(config_name='ricloud.ini'):
     config = ConfigParser.RawConfigParser()
     path_to_config = os.path.join(os.path.dirname(__file__), config_name)
 
-    home_path = os.path.expanduser('~/.%s' % config_name)
+    home_path = os.path.expanduser(os.path.join('~', '.%s' % config_name))
     paths = [path_to_config, home_path]
 
     if 'RICLOUD_CONF' in os.environ:
