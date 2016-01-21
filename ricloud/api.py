@@ -119,8 +119,7 @@ class RiCloud(object):
                                     data=data, headers=self.headers)
 
         if response.ok:
-            # The challenge has been processed, we now need to wait
-            # for the user's submission
+            # Retry login
             return self.login(apple_id=self.apple_id, password=self.password)
         else:
             # Unhandled respnose
