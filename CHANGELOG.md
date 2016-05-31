@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.8
+* Fixed issue retrieving `photo` withouth permissions.
+
 ## 1.0.7
 * Fixed documentation issue.
 
