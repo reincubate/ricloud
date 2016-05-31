@@ -78,8 +78,10 @@ def main():
 
     if 'photos' in data and isinstance(data['photos'], list):
         for photo in data['photos']:
-            with open(os.path.join('out', photo['filename']), 'wb') as out:
-                api.backup_client.download_file(device_id, photo['file_id'], out)
+            # It can get the "Contact enterprise" message, in which case we cannot access `filename`
+            if 'filename' in photo:
+                with open(os.path.join('out', photo['filename']), 'wb') as out:
+                    api.backup_client.download_file(device_id, photo['file_id'], out)
 
     print 'Complete! All data is in the directory "out".'
 
