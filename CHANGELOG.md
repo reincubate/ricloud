@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.9
+* Add support for iOS 10
+
 ## 1.0.8
 * Fixed issue retrieving `photo` withouth permissions.
 
