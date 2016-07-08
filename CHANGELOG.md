@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.10
+
+* Updated documentation.
+* Added support for account management features.
+* Added support for new data types.
+* Improved exception handling.
+
 ## 1.0.9
 * Add support for iOS 10
 

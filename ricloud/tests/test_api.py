@@ -4,13 +4,14 @@ import shutil
 from functools import wraps
 
 from ricloud.conf import settings, get_config
-from ricloud.api import ICloudApi
+from ricloud.api import RiCloud as ICloudApi
 from ricloud.exceptions import TwoFactorAuthenticationRequired
 from ricloud.tests.responses_registration import register_valid_responses, register_2fa_responses
 import responses
 import pytest
 
 WORKSPACE_ROOT = os.path.join(os.path.dirname(__file__), 'workspace')
+
 
 def setup_module(module):
     try:
@@ -29,6 +30,32 @@ def toggle_responses(func):
             return func(*args, **kwargs)
         return responses.activate(func)(*args, **kwargs)
     return inner
+
+
+class TestAccManagement:
+
+    @toggle_responses
+    def test_device_deactivation(self):
+        """
+            Can we deactivate a device.
+        """
+        register_valid_responses()
+        api = ICloudApi(user=settings.get('test', 'user'), key=settings.get('test', 'key'))
+        api.login(apple_id=settings.get('test', 'apple_id'), password=settings.get('test', 'password'))
+
+        api.acc_management_client.deactivate_device('0xbeef')
+
+    @toggle_responses
+    def test_device_activation(self):
+        """
+            Can we activate a device.
+        """
+        register_valid_responses()
+        api = ICloudApi(user=settings.get('test', 'user'), key=settings.get('test', 'key'))
+        api.login(apple_id=settings.get('test', 'apple_id'), password=settings.get('test', 'password'))
+
+        api.acc_management_client.activate_device('1')
+
 
 class TestLogIn:
     @toggle_responses
@@ -52,6 +79,7 @@ class TestLogIn:
 
         # The trusted devices fields should now be populated
         assert len(api.trusted_devices) > 0
+
 
 class TestDataDownload():
     @toggle_responses
@@ -80,6 +108,7 @@ class TestDataDownload():
 
                     with open(os.path.join(WORKSPACE_ROOT, filename), 'wb') as out:
                         api.backup_client.download_file(device_id=device_id, file_id=file_id, out=out)
+
 
 class TestConfig():
     @classmethod

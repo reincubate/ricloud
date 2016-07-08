@@ -17,11 +17,16 @@ def choose_device(devices):
     device_ids = []
     for index, id in enumerate(devices):
         device_ids.append(id)
-        name, model, colour, latest = devices[id]["device_name"], devices[id]["model"], devices[id]["colour"], devices[id]["latest-backup"]
+        name = devices[id]["device_name"]
+        model = devices[id]["model"]
+        colour = devices[id]["colour"]
+        latest = devices[id]["latest-backup"]
+
         print "%s - %s [model: %s, colour: %s, latest-backup: %s]" % (index, unidecode(name), model, colour, latest)
 
     print "\nChoose a device by specifying its index (e.g. 0):",
     return device_ids[input()]
+
 
 def choose_trusted_device(trusted_devices):
     print '\n2FA has been enabled, choose a trusted device:'
@@ -30,23 +35,27 @@ def choose_trusted_device(trusted_devices):
     print "\nChoose a device by specifying its index (e.g. 0):",
     return trusted_devices[input()]
 
+
 def get_2fa_code():
     print '\nA code has been sent to your device.'
     print 'Code: ',
     return raw_input()
+
 
 def get_login():
     email = raw_input("Please enter your Apple ID: ")
     password = getpass.getpass("Please enter your password: ")
     return email, password
 
+
 def get_data_mask():
     print '\nWhat would you like to download?\n'
     for mask, display_name in RiCloud._backup_client_class.AVAILABLE_DATA:
-        print str(mask).ljust(5), display_name
+        print str(mask).ljust(7), display_name
 
     print '\nMask (0) for all: ',
     return input()
+
 
 def main():
     email, password = get_login()
@@ -81,7 +90,8 @@ def main():
             # It can get the "Contact enterprise" message, in which case we cannot access `filename`
             if 'filename' in photo:
                 with open(os.path.join('out', photo['filename']), 'wb') as out:
-                    api.backup_client.download_file(device_id, photo['file_id'], out)
+                    api.backup_client.download_file(device_id,
+                                                    photo['file_id'], out)
 
     print 'Complete! All data is in the directory "out".'
 

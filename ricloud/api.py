@@ -1,16 +1,18 @@
-import datetime
 import requests
 
 from ricloud.conf import settings
 from ricloud.backup import BackupClient
+from ricloud.acc_management import AccManagementClient
 from ricloud.exceptions import TwoFactorAuthenticationRequired
 
+
 class RiCloud(object):
-    """Primary object for dealing with the API."""
+    """Primary objects for dealing with the API."""
     _backup_client_class = BackupClient
+    _accmanagement_client_class = AccManagementClient
 
     headers = {
-            'Accept': 'application/vnd.icloud-api.v%s' % settings.get('DEFAULT', 'api_version'),
+        'Accept': 'application/vnd.icloud-api.v%s' % settings.get('DEFAULT', 'api_version'),
         }
 
     def __init__(self, user=None, key=None):
@@ -41,6 +43,7 @@ class RiCloud(object):
         self.data = {}
 
         self.backup_client = RiCloud._backup_client_class(self)
+        self.acc_management_client = RiCloud._accmanagement_client_class(self)
 
     def login(self, apple_id, password):
         """Log into the iCloud
@@ -57,8 +60,9 @@ class RiCloud(object):
         if self.session_key:
             data['key'] = self.session_key
 
-        response = requests.post(settings.get('endpoints', 'login'), auth=self.auth,
-                                    data=data, headers=self.headers)
+        response = requests.post(settings.get('endpoints', 'login'),
+                                 auth=self.auth, data=data,
+                                 headers=self.headers)
 
         if response.ok:
             # We've logged in successfully
@@ -83,8 +87,8 @@ class RiCloud(object):
                 self.password = password
 
                 raise TwoFactorAuthenticationRequired(
-                        'This user has 2FA enabled, please select a device '
-                        'and request a challenge.'
+                    'This user has 2FA enabled, please select a device '
+                    'and request a challenge.'
                     )
         else:
             # Unhandled response
@@ -98,7 +102,7 @@ class RiCloud(object):
         }
 
         response = requests.post(settings.get('endpoints', 'challenge_2fa'), auth=self.auth,
-                                    data=data, headers=self.headers)
+                                 data=data, headers=self.headers)
 
         if response.ok:
             # The challenge has been processed, we now need to wait
@@ -116,7 +120,7 @@ class RiCloud(object):
         }
 
         response = requests.post(settings.get('endpoints', 'submit_2fa'), auth=self.auth,
-                                    data=data, headers=self.headers)
+                                 data=data, headers=self.headers)
 
         if response.ok:
             # Retry login

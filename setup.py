@@ -20,6 +20,7 @@ tests_require = [
     'flake8',
 ]
 
+
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)

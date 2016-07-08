@@ -1,8 +1,9 @@
 import datetime
 from StringIO import StringIO
+import requests
 
 from ricloud.conf import settings
-import requests
+from ricloud.exceptions import BackupException
 
 class BackupClient(object):
     DATA_SMS = 1
@@ -21,24 +22,48 @@ class BackupClient(object):
     DATA_WEB_CONTACTS = 64
     DATA_WEB_LOCATION = 256
 
+    DATA_FACEBOOK_MESSAGES = 32768
+    DATA_WECHAT_MESSAGES = 65536
+    DATA_SNAPCHAT_MESSAGES = 131072
+
+    DATA_FILE_LIST = 262144
+
+    DATA_WEB_BROWSER_HISTORY = 524288
+
+    DATA_WHATSAPP_CALL_HISTORY = 1048576
+    DATA_VIBER_CALL_HISTORY = 2097152
+
+    DATA_APP_USAGE = 4194304
+
+    DATA_NOTES = 8388608
+
     AVAILABLE_DATA = (
-            (DATA_SMS,              'Messages'),
-            (DATA_PHOTOS,           'Photos and Videos'),
-            (DATA_BROWSER_HISTORY,  'Browser History'),
-            (DATA_CALL_HISTORY,     'Call History'),
-            (DATA_CONTACTS,         'Contacts'),
-            (DATA_INSTALLED_APPS,   'Installed Apps'),
-            (DATA_WHATSAPP_MESSAGES,   'WhatsApp Messages'),
-            (DATA_SKYPE_MESSAGES,   'Skype Messages'),
-            (DATA_APPOINTMENTS,   'Appointments'),
-            (DATA_LINE_MESSAGES,   'Line Messages'),
-            (DATA_KIK_MESSAGES,   'Kik Messages'),
-            (DATA_VIBER_MESSAGES,   'Viber Messages'),
+        (DATA_SMS, 'Messages'),
+        (DATA_PHOTOS, 'Photos and Videos'),
+        (DATA_BROWSER_HISTORY, 'Browser History'),
+        (DATA_CALL_HISTORY, 'Call History'),
+        (DATA_CONTACTS, 'Contacts'),
+        (DATA_INSTALLED_APPS, 'Installed Apps'),
+        (DATA_WHATSAPP_MESSAGES, 'WhatsApp Messages'),
+        (DATA_SKYPE_MESSAGES, 'Skype Messages'),
+        (DATA_APPOINTMENTS, 'Appointments'),
+        (DATA_LINE_MESSAGES, 'Line Messages'),
+        (DATA_KIK_MESSAGES, 'Kik Messages'),
+        (DATA_VIBER_MESSAGES, 'Viber Messages'),
 
 
-            (DATA_WEB_CONTACTS,     'Contacts (live)'),
-            (DATA_WEB_LOCATION,     'Location (live)'),
-        )
+        (DATA_WEB_CONTACTS, 'Contacts (live)'),
+        (DATA_WEB_LOCATION, 'Location (live)'),
+        (DATA_FACEBOOK_MESSAGES, 'Facebook Messages'),
+        (DATA_WECHAT_MESSAGES, 'WeChat Messages'),
+        (DATA_SNAPCHAT_MESSAGES, 'Snapchat Messages'),
+        (DATA_FILE_LIST, 'Available File list'),
+        (DATA_WEB_BROWSER_HISTORY, 'Browser History (live)'),
+        (DATA_WHATSAPP_CALL_HISTORY, 'WhatsApp call logs'),
+        (DATA_VIBER_CALL_HISTORY, 'Viber call logs'),
+        (DATA_APP_USAGE, 'App/Device usage data'),
+        (DATA_NOTES, 'Notes'),
+    )
 
     MIN_REQUEST_DATE = datetime.datetime(year=1900, month=1, day=1)
 
@@ -56,7 +81,8 @@ class BackupClient(object):
         since       -- Datetime to retrieve data from (i.e. SMS received
                        after this point)
         """
-        assert self.api.session_key is not None, 'Session key is required, please log in.'
+        assert self.api.session_key is not None, 'Session key is required,'\
+                                                 ' please log in.'
 
         if not data_mask:
             # No mask has been set, so use everything
@@ -77,14 +103,13 @@ class BackupClient(object):
             'since': since.strftime('%Y-%m-%d %H:%M:%S.%f'),
             'device': device_id,
         }
-
-        response = requests.post(settings.get('endpoints', 'download_data'),
-                                    auth=self.api.auth, data=post_data,
-                                    headers=self.api.headers)
+        url = settings.get('endpoints', 'download_data')
+        response = requests.post(url, auth=self.api.auth, data=post_data,
+                                 headers=self.api.headers)
 
         if not response.ok:
             # Unhandled respnose
-            response.raise_for_status()
+            raise BackupException(response, url, post_data)
         return response.json()
 
     def download_file(self, device_id, file_id, out=None):
@@ -109,8 +134,8 @@ class BackupClient(object):
         }
 
         response = requests.post(settings.get('endpoints', 'download_file'),
-                                    auth=self.api.auth, data=post_data,
-                                    stream=True, headers=self.api.headers)
+                                 auth=self.api.auth, data=post_data,
+                                 stream=True, headers=self.api.headers)
 
         for chunk in response.iter_content(chunk_size=1024):
             if chunk:

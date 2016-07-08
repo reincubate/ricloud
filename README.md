@@ -16,7 +16,7 @@ $ pip install ricloud
 
 The API relies on a set of security credentials, which are stored in an ``ricloud.ini`` file. This package ships with a default configuration file which enables limited access to the API for demonstration purposes.
 
-The default credentials can be overridden by creating an override file named ``.ricloud.ini`` in the running user's ``HOME`` directory. Alternately, an ``RICLOUD_CONF`` environment variable can be set, specifying the full path and filename of the configuration file.
+The default credentials can be overridden by creating an override file named ``.ricloud.ini`` in the user's ``HOME`` directory. Alternately, a ``RICLOUD_CONF`` environment variable can be set, specifying the full path and filename of the configuration file.
 
 This file should have the following details:
 
@@ -36,13 +36,15 @@ password =
 
 ## Usage
 
-A sample script is included which provides an example of how the API can be used to access a range of datatypes in a way that is compatible with Apple's 2FA mechanism. The sample script can be run like this:
+A sample script is included which provides an example of how the API can be used to access a range of datatypes in a way that is compatible with Apple's 2FA mechanism.
+
+To run the sample script, execute the following command:
 
 ```bash
 $ python -c "from ricloud.sample_script import main; main();"
 ```
 
-Here's what the output from the sample script looks like:
+A sample output of the sample script is provided.
 
 ```
 Please enter your Apple ID: renate@reincubate.com
@@ -70,20 +72,29 @@ Choose a device by specifying its index (e.g. 0): 3
 
 What would you like to download?
 
-1     Messages
-2     Photos and Videos
-4     Browser History
-8     Call History
-16    Contacts
-32    Installed Apps
-512   WhatsApp Messages
-1024  Skype Messages
-2048  Appointments
-4096  Line Messages
-8192  Kik Messages
-16384 Viber Messages
-64    Contacts (live)
-256   Location (live)
+1       Messages
+2       Photos and Videos
+4       Browser History
+8       Call History
+16      Contacts
+32      Installed Apps
+512     WhatsApp Messages
+1024    Skype Messages
+2048    Appointments
+4096    Line Messages
+8192    Kik Messages
+16384   Viber Messages
+64      Contacts (live)
+256     Location (live)
+32768   Facebook Messages
+65536   WeChat Messages
+131072  Snapchat Messages
+262144  Available File list
+524288  Browser History (live)
+1048576 WhatsApp call logs
+2097152 Viber call logs
+4194304 App/Device usage data
+8388608 Notes
 
 Mask (0) for all:  0
 Complete! All data is in the directory "out".
@@ -99,10 +110,12 @@ api = RiCloud()
 # Login to iCloud. If you have two factor authentication enabled then you'll need
 # submit a challenge request and a response. Have a look at the sample_script.py
 # file for an example of this.
+
 api.login(APPLE_ID, APPLE_PASSWORD)
 
 # Now we have a list of the devices connected to this account stored in `api.devices`
 # Let's have a look:
+
 print api.devices
 ```
 
@@ -112,32 +125,36 @@ That `api.devices` dictionary contains data in this format:
 {u'7c7fba66680ef796b916b067077cc246adacf01d': {
     u'colour': u'#e4e7e8',
     u'device_name': u"Renate's iPhone",
-    u'latest-backup': u'2015-11-17 16:46:39.000000',
+    u'latest-backup': u'2016-03-17 16:46:39.000000',
     u'model': u'N71mAP',
     u'name': u'iPhone 6s'},
  u'8e281be6657d4523710d96341b6f86ba89b56df7': {
     u'colour': u'#e1e4e3',
     u'device_name': u"Renate's iPad",
-    u'latest-backup': u'2015-11-13 19:35:52.000000',
+    u'latest-backup': u'2016-03-13 19:35:52.000000',
     u'model': u'J98aAP',
     u'name': u'iPad Pro'},
 }
 ```
 
+In the `api.devices` dictionary, the keys are device ids of the devices associated with the iCloud account.
+
 ### Using the JSON feed API
 
-The API is able to return data retrieved from a wide range of apps, and enumerations for some of these are baked into the sample API. However, we have many other types of app feeds available, including Viber, Kik, WeChat, Line, and others.
+The API is able to retrieve data from a wide range of apps; a list is provided below.
 
-> We also have functionality such as message undeletion which can be enabled on demand against API keys.
+> Functionality such as message undeletion can be enabled on demand against API keys.
 
-To choose which data types to return in the feed, users can pass a mask of data types to the `BackupClient.request_data` method. To select multiple data types, separate each type with the bitwise OR ``|`` operator. For example to select both SMS and photo data:
+To request a data type, users can pass a mask of data types to the `BackupClient.request_data` method. To select multiple data types, separate each type with the bitwise OR ``|`` operator. For example to select both SMS and photo data:
 
 ```python
 # SMS and photo retrieval
 requested_data = BackupClient.DATA_SMS | BackupClient.DATA_PHOTOS
 ```
 
-If no selection is made, the API will return all available data available. The following is an example of how to select which data to retrieve.
+If no selection is made, the API will return all available data available.
+
+The following is a complete list of the bit-flags that can be passed to `BackupClient.request_data`.
 
 #### Device-specific iOS data
 
@@ -162,6 +179,18 @@ requested_data = BackupClient.DATA_CONTACTS
 
 # For appointment retrieval
 requested_data = BackupClient.DATA_APPOINTMENTS
+
+# For App usage retrieval
+requested_data = BackupClient.DATA_APP_USAGE
+
+# For Notes retrieval
+requested_data = BackupClient.DATA_NOTES
+
+# For list of files associated to a device
+requested_data = BackupClient.DATA_FILE_LIST
+
+# For live Web browser history retrieval
+requested_data = BackupClient.DATA_WEB_BROWSER_HISTORY
 ```
 
 #### iCloud account-specific data
@@ -180,22 +209,37 @@ requested_data = BackupClient.DATA_WEB_LOCATION
 # For WhatsApp message retrieval
 requested_data = BackupClient.DATA_WHATSAPP_MESSAGES
 
+# For WhatsApp call history retrieval
+requested_data = BackupClient.DATA_WHATSAPP_CALL_HISTORY
+
 # For Skype message retrieval
 requested_data = BackupClient.DATA_SKYPE_MESSAGES
 
-# For Line message retrieval
-requested_data = BackupClient.DATA_LINE_MESSAGES
+# For Facebook message retrieval
+requested_data = BackupClient.DATA_FACEBOOK_MESSAGES
+
+# For Snapchat message retrieval
+requested_data = BackupClient.DATA_SNAPCHAT_MESSAGES
 
 # For Viber message retrieval
 requested_data = BackupClient.DATA_VIBER_MESSAGES
 
+# For Viber call history
+requested_data = BackupClient.DATA_VIBER_CALL_HISTORY
+
+# For Line message retrieval
+requested_data = BackupClient.DATA_LINE_MESSAGES
+
 # For Kik message retrieval
 requested_data = BackupClient.DATA_KIK_MESSAGES
+
+# For Wechat message retrieval
+requested_data = BackupClient.DATA_WECHAT_MESSAGES
 ```
 
 #### Simple sample script
 
-Putting this all together, a simple script to access iCloud data as a JSON feed looks like this:
+We can combine the ideas above to write a simple script to access iCloud data via the JSON feed.
 
 ```python
 from datetime import datetime
@@ -260,7 +304,7 @@ See the iCloud API [support page](https://www.reincubate.com/contact/support/icl
 
 ## <a name="more"></a>Need more functionality?
 
-Reincubate's vision is to provide data access, extraction and recovery technology for all app platforms, be they mobile, desktop, web, appliance or in-vehicle.
+Reincubate's vision is to provide data access, extraction and recovery technology for all app platforms - be they mobile, desktop, web, appliance or in-vehicle.
 
 The company was founded in 2008 and was first to market with both iOS and iCloud data extraction technology. With over half a decade's experience helping law enforcement and security organisations access iOS data, Reincubate has licensed software to government, child protection and corporate clients around the world.
 

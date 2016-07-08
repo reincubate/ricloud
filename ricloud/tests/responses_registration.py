@@ -1,8 +1,34 @@
 import responses
+import json
 
 from ricloud.conf import settings
 
+
 def register_valid_responses():
+
+
+    print settings.get('endpoints', 'deactivation')
+    device_id = '1'
+    responses.add(
+                method=responses.POST,
+                url=settings.get('endpoints', 'deactivation'),
+                json={
+                    'message': 'Device: %s has been deactivated' % device_id
+                     },
+                status=200,
+            )
+
+    print settings.get('endpoints', 'activation')
+    device_id = '1'
+    responses.add(
+                method=responses.POST,
+                url=settings.get('endpoints', 'activation'),
+                json={
+                    'message': 'Device: %s has been activated' % device_id
+                     },
+                status=200,
+            )
+
     print settings.get('endpoints', 'login')
     responses.add(
                 method=responses.POST,

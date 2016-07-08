@@ -1,6 +1,7 @@
 import ConfigParser
 import os
 
+
 def get_config(config_name='ricloud.ini'):
     """Loop through all paths and find the config, starting here.
 
@@ -22,12 +23,15 @@ def get_config(config_name='ricloud.ini'):
     if config.has_section('endpoints'):
         host = config.get('endpoints', 'host')
         endpoints = {
-                'login': "%s/c/sign-in/",
-                'challenge_2fa': "%s/c/perform-2fa-challenge/",
-                'submit_2fa': "%s/c/submit-2fa-challenge/",
-                'download_data': "%s/c/download-data/",
-                'download_file': "%s/c/download-file/",
+            'login': "%s/c/sign-in/",
+            'challenge_2fa': "%s/c/perform-2fa-challenge/",
+            'submit_2fa': "%s/c/submit-2fa-challenge/",
+            'download_data': "%s/c/download-data/",
+            'download_file': "%s/c/download-file/",
+            'deactivation': "%s/c/client-management/deactivation/",
+            'activation': "%s/c/client-management/activation/",
             }
+
         for key, uri in endpoints.iteritems():
             if not config.get('endpoints', key):
                 config.set('endpoints', key, uri % host)
