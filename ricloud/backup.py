@@ -83,7 +83,6 @@ class BackupClient(object):
         """
         assert self.api.session_key is not None, 'Session key is required,'\
                                                  ' please log in.'
-
         if not data_mask:
             # No mask has been set, so use everything
             data_mask = 0
@@ -109,7 +108,11 @@ class BackupClient(object):
 
         if not response.ok:
             # Unhandled respnose
-            raise BackupException(response, url, post_data)
+            raise BackupException(
+                response=response,
+                url=url,
+                data=post_data,
+            )
         return response.json()
 
     def download_file(self, device_id, file_id, out=None):

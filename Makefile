@@ -12,6 +12,11 @@ test:
 	py.test $(apps)
 	@echo ""
 
+dtest:
+	@echo "Running tests"
+	py.test $(apps) --pdb
+	@echo ""
+
 live-test:
 	@echo "Running live tests - these can be slow."
 	RUN_LIVE_TESTS=True \

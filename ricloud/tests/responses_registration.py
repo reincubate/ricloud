@@ -4,6 +4,34 @@ import json
 from ricloud.conf import settings
 
 
+def register_502_response():
+
+    responses.add(
+                method=responses.POST,
+                url=settings.get('endpoints', 'login'),
+                body=r"""
+                        {
+                            "key": "ae354ef8-b7b6-4a40-843f-96dddff3c64f",
+                            "devices": {
+                                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": {
+                                    "latest-backup": "2014-06-25 22:19:31.000000",
+                                    "model": "N88AP",
+                                    "device_name": "John Appleseed's iPhone",
+                                    "colour": "white",
+                                    "name": "iPhone 3GS"
+                                }
+                            }
+                        }
+                    """
+                )
+
+    responses.add(
+        method=responses.POST,
+        url=settings.get('endpoints', 'download_data'),
+        status=502,
+    )
+
+
 def register_valid_responses():
 
 

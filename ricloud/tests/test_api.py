@@ -3,10 +3,13 @@ import os
 import shutil
 from functools import wraps
 
+from ricloud.exceptions import BackupException
 from ricloud.conf import settings, get_config
 from ricloud.api import RiCloud as ICloudApi
 from ricloud.exceptions import TwoFactorAuthenticationRequired
-from ricloud.tests.responses_registration import register_valid_responses, register_2fa_responses
+from ricloud.tests.responses_registration import (
+    register_valid_responses, register_2fa_responses, register_502_response
+)
 import responses
 import pytest
 
@@ -108,6 +111,17 @@ class TestDataDownload():
 
                     with open(os.path.join(WORKSPACE_ROOT, filename), 'wb') as out:
                         api.backup_client.download_file(device_id=device_id, file_id=file_id, out=out)
+
+    @toggle_responses
+    def test_502_exception(self):
+        register_502_response()
+
+        api = ICloudApi(user=settings.get('test', 'user'), key=settings.get('test', 'key'))
+        api.login(apple_id=settings.get('test', 'apple_id'), password=settings.get('test', 'password'))
+
+        for device_id in api.devices.keys():
+            with pytest.raises(BackupException):
+                api.backup_client.request_data(device_id=device_id)
 
 
 class TestConfig():

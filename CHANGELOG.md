@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.11
+* Fixed exception handling.
+* Improved information displayed when exceptions called.
+
 ## 1.0.10
 
 * Updated documentation.

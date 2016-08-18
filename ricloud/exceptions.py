@@ -1,10 +1,18 @@
+from ricloud.conf import settings
+
 class ApiException(Exception):
 
     def __init__(self, response, url, data):
         self.content = response.content
-        self.json = response.json()
-        self.error = self.json['error']
         self.status_code = response.status_code
+
+        try:
+            self.json = response.json()
+        except ValueError:
+            self.json = {}
+
+        self.error = self.json.get('error', '')
+
         self.curl = self._curl_request(url, data)
 
     def __str__(self):
@@ -16,8 +24,10 @@ class ApiException(Exception):
         return str(sc_str + err_str + fr_str + curl_str)
 
     def _curl_request(self, url, data):
-        curl_call = "curl -L -v -X POST --user \"USER:KEY\" --header "\
-                    "Accept: application/vnd.icloud-api.v1"
+        user = settings.get('auth', 'user')
+        key = settings.get('auth', 'key')
+        curl_call = "curl -L -v -X POST --user \"{0}:{1}\" --header "\
+                    "Accept: application/vnd.icloud-api.v1".format(user, key)
         curl_data = ''
         for e in data:
             curl_data = curl_data+' --data-urlencode \"{0}={1}\"'.format(e, data[e])
