@@ -72,29 +72,30 @@ Choose a device by specifying its index (e.g. 0): 3
 
 What would you like to download?
 
-1       Messages
-2       Photos and Videos
-4       Browser History
-8       Call History
-16      Contacts
-32      Installed Apps
-512     WhatsApp Messages
-1024    Skype Messages
-2048    Appointments
-4096    Line Messages
-8192    Kik Messages
-16384   Viber Messages
-64      Contacts (live)
-256     Location (live)
-32768   Facebook Messages
-65536   WeChat Messages
-131072  Snapchat Messages
-262144  Available File list
-524288  Browser History (live)
-1048576 WhatsApp call logs
-2097152 Viber call logs
-4194304 App/Device usage data
-8388608 Notes
+1        Messages
+2        Photos and Videos
+4        Browser History
+8        Call History
+16       Contacts
+32       Installed Apps
+512      WhatsApp Messages
+1024     Skype Messages
+2048     Appointments
+4096     Line Messages
+8192     Kik Messages
+16384    Viber Messages
+64       Contacts (live)
+256      Location (live)
+32768    Facebook Messages
+65536    WeChat Messages
+131072   Snapchat Messages
+262144   Available File list
+524288   Browser History (live)
+1048576  WhatsApp call logs
+2097152  Viber call logs
+4194304  App/Device usage data
+8388608  Notes
+16777216 List of all devices
 
 Mask (0) for all:  0
 Complete! All data is in the directory "out".
@@ -201,6 +202,9 @@ requested_data = BackupClient.DATA_WEB_CONTACTS
 
 # For location retrieval
 requested_data = BackupClient.DATA_WEB_LOCATION
+
+# For list of all devices associated with an iCloud account
+requested_data = BackupClient.DATA_WEB_ACCESS_DEVICES
 ```
 
 #### App-specific data

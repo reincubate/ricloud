@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.13
+
+* Improved Documentation.
+
 ## 1.0.12
 
 * Added support for list all devices datatype.
