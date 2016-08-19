@@ -37,6 +37,8 @@ class BackupClient(object):
 
     DATA_NOTES = 8388608
 
+    DATA_WEB_ACCESS_DEVICES = 16777216
+
     AVAILABLE_DATA = (
         (DATA_SMS, 'Messages'),
         (DATA_PHOTOS, 'Photos and Videos'),
@@ -63,6 +65,8 @@ class BackupClient(object):
         (DATA_VIBER_CALL_HISTORY, 'Viber call logs'),
         (DATA_APP_USAGE, 'App/Device usage data'),
         (DATA_NOTES, 'Notes'),
+        (DATA_WEB_ACCESS_DEVICES, 'List of all devices'),
+
     )
 
     MIN_REQUEST_DATE = datetime.datetime(year=1900, month=1, day=1)

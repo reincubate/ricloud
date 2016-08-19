@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.12
+
+* Added support for list all devices datatype.
+
 ## 1.0.11
 * Fixed exception handling.
 * Improved information displayed when exceptions called.

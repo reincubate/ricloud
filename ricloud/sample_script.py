@@ -51,7 +51,7 @@ def get_login():
 def get_data_mask():
     print '\nWhat would you like to download?\n'
     for mask, display_name in RiCloud._backup_client_class.AVAILABLE_DATA:
-        print str(mask).ljust(7), display_name
+        print str(mask).ljust(8), display_name
 
     print '\nMask (0) for all: ',
     return input()
