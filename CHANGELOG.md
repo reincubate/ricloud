@@ -1,4 +1,8 @@
-**2.0.0** - *released 10.01.2017*
+**2.0.1** - *released 18.01.2017*
+
+* Fix for pypi package release requirements.
+
+**2.0.0** - *released 17.01.2017*
 
 * Inital release of the new ricloud API client. This implementation is not compatible with implementations of the `1.x.y` versions of the client.
 
