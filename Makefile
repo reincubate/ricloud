@@ -1,24 +1,10 @@
-apps = ricloud
+init:
+	pip install -r requirements.txt
 
-develop:
-	pip install -e .
-	make install-test-requirements
-
-install-test-requirements:
-	pip install "file://`pwd`#egg=ricloud[tests]"
+init-dev:
+	pip install -r requirements-local.txt
 
 test:
-	@echo "Running tests"
-	py.test $(apps)
-	@echo ""
+	py.test tests
 
-dtest:
-	@echo "Running tests"
-	py.test $(apps) --pdb
-	@echo ""
-
-live-test:
-	@echo "Running live tests - these can be slow."
-	RUN_LIVE_TESTS=True \
-	py.test $(apps)
-	@echo ""
+.PHONY: init test

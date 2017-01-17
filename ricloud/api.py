@@ -1,130 +1,206 @@
+"""Primary API object. This handles communication with the ASApi enpoints."""
+
+from __future__ import absolute_import
+
+import time
 import requests
 
-from ricloud.conf import settings
-from ricloud.backup import BackupClient
-from ricloud.acc_management import AccManagementClient
-from ricloud.exceptions import TwoFactorAuthenticationRequired
+from .conf import settings
 
 
-class RiCloud(object):
-    """Primary objects for dealing with the API."""
-    _backup_client_class = BackupClient
-    _accmanagement_client_class = AccManagementClient
+class Api(object):
+    """Primary object that pushes requests into a distinct stream thread."""
 
-    headers = {
-        'Accept': 'application/vnd.icloud-api.v%s' % settings.get('DEFAULT', 'api_version'),
+    def __init__(self):
+        self.host = settings.get('hosts', 'api_host')
+        self.token = settings.get('auth', 'token')
+
+        self.account_info_endpoint = '%s%s' % (self.host, settings.get('endpoints', 'account_information'))
+        self.register_account_endpoint = '%s%s' % (self.host, settings.get('endpoints', 'register_account'))
+        self.task_status_endpoint = '%s%s' % (self.host, settings.get('endpoints', 'task_status'))
+        self.results_consumed_endpoint = '%s%s' % (self.host, settings.get('endpoints', 'result_consumed'))
+
+        self._pending_tasks = {}
+        self.services = {}
+
+    @property
+    def pending_tasks(self):
+        return self._pending_tasks
+
+    @property
+    def token_header(self):
+        return {
+            'Authorization': 'Token %s' % self.token,
         }
 
-    def __init__(self, user=None, key=None):
-        """Initialize our client API instance
+    def _get_info(self):
+        """Fetch account information from ASApi host."""
+        return self._perform_get_request(self.account_info_endpoint, headers=self.token_header)
 
-        Keyword Arguments:
-        user        -- User ID to authenticate against
-        key         -- Corresponding authentication KEY supplied by Reincubate
-        """
-        self.user = user if user else settings.get('auth', 'user')
-        self.key = key if key else settings.get('auth', 'key')
-        self.auth = (self.user, self.key)
+    @staticmethod
+    def _parse_endpoint(endpoint):
+        """Expect endpoint to be dictionary containing `protocol`, `host` and `uri` keys."""
+        return "{protocol}://{host}{uri}".format(**endpoint)
 
-        # These are only ever stored between 2FA requests to prevent
-        # having to ask the user's details again.
-        self.apple_id = None
-        self.password = None
+    def _set_endpoints(self, info):
+        self.stream_endpoints = info['stream_endpoints']
 
-        self.session_key = None
-        self.devices = {}
+        submission = info['task_submission_endpoint']
+        self.submit_endpoint = self._parse_endpoint(submission)
 
-        # If 2FA is active on this account, then the trusted device list
-        # will be populated once a login is attempted
-        self.trusted_devices = []
+    def _set_allowed_services_and_actions(self, services):
+        """Expect services to be a list of service dictionaries, each with `name` and `actions` keys."""
+        for service in services:
+            self.services[service['name']] = {}
 
-        # Data from iCloud, populated once logged in and request_data
-        # has been called.
-        self.data = {}
+            for action in service['actions']:
+                name = action.pop('name')
+                self.services[service['name']][name] = action
 
-        self.backup_client = RiCloud._backup_client_class(self)
-        self.acc_management_client = RiCloud._accmanagement_client_class(self)
+    def setup(self):
+        info = self._get_info()
+        self._set_endpoints(info)
+        self.retrieval_protocol = info['retrieval_protocol']
+        self._set_allowed_services_and_actions(info['services'])
 
-    def login(self, apple_id, password):
-        """Log into the iCloud
+    def allowed_services(self):
+        return self.services.keys()
 
-        Keyword Arguments:
-        apple_id    -- User's apple ID
-        password    -- User's apple password
+    def allowed_actions(self, service_name):
+        return self.services[service_name].keys()
+
+    def register_account(self, username, service):
+        """Register an account against a service.
+        The account that we're querying must be referenced during any
+        future task requests - so we know which account to link the task
+        too.
         """
         data = {
-            "email": apple_id,
-            "password": password,
+            'service': service,
+            'username': username,
         }
 
-        if self.session_key:
-            data['key'] = self.session_key
+        return self._perform_post_request(self.register_account_endpoint, data, self.token_header)
 
-        response = requests.post(settings.get('endpoints', 'login'),
-                                 auth=self.auth, data=data,
-                                 headers=self.headers)
-
-        if response.ok:
-            # We've logged in successfully
-            data = response.json()
-            self.session_key = data['key']
-            self.devices = data['devices']
-
-            # Clear memory cache of apple credentials
-            # These may or may not be set, but better to be on the safe side.
-            self.apple_id = None
-            self.password = None
-
-        elif response.status_code == 409:
-            data = response.json()
-            error = data['error']
-
-            if error == '2fa-required':
-                # 2fa has been activated on this account
-                self.trusted_devices = data['data']['trustedDevices']
-                self.session_key = data['data']['key']
-                self.apple_id = apple_id
-                self.password = password
-
-                raise TwoFactorAuthenticationRequired(
-                    'This user has 2FA enabled, please select a device '
-                    'and request a challenge.'
-                    )
-        else:
-            # Unhandled response
-            response.raise_for_status()
-
-    def request_2fa_challenge(self, challenge_device):
-        """Request a 2FA challenge to the supplied trusted device"""
+    def perform_task(self, service, task_name, account, payload, callback=None):
+        """Submit a task to the API.
+        The task is executed asyncronously, and a Task object is returned.
+        """
         data = {
-            'challenge': challenge_device,
-            'key': self.session_key,
+            'service': service,
+            'action': task_name,
+            'account': account,
         }
+        data.update(payload)
 
-        response = requests.post(settings.get('endpoints', 'challenge_2fa'), auth=self.auth,
-                                 data=data, headers=self.headers)
+        response = self._perform_post_request(self.submit_endpoint, data, self.token_header)
 
-        if response.ok:
-            # The challenge has been processed, we now need to wait
-            # for the user's submission
+        task = Task(uuid=response['task_id'], callback=callback)
+        self._pending_tasks[task.uuid] = task
+
+        return task
+
+    def task_status(self, task_id):
+        """Find the status of a task."""
+        data = {
+            'task_ids': task_id,
+        }
+        return self._perform_post_request(self.task_status_endpoint, data, self.token_header)
+
+    def result_consumed(self, task_id):
+        """Report the result as successfully consumed."""
+        data = {
+            'task_ids': task_id,
+        }
+        return self._perform_post_request(self.results_consumed_endpoint, data, self.token_header)
+
+    def wait_for_results(self):
+        while self._pending_tasks:
+            time.sleep(0.1)
+
+    def set_task_result(self, task_id, result):
+        if task_id not in self._pending_tasks:
+            time.sleep(1)
+        try:
+            self._pending_tasks[task_id].result = result
+            self._pending_tasks.pop(task_id)
+            self.result_consumed(task_id)
+        except KeyError:
             pass
-        else:
-            # Unhandled respnose
+
+    @staticmethod
+    def _parse_response(response, post_request=False):
+        if not response.ok:
             response.raise_for_status()
 
-    def submit_2fa_challenge(self, code):
-        """Submit a user supplied 2FA challenge code"""
-        data = {
-            'code': code,
-            'key': self.session_key,
-        }
+        data = response.json()
 
-        response = requests.post(settings.get('endpoints', 'submit_2fa'), auth=self.auth,
-                                 data=data, headers=self.headers)
+        if post_request and not data['success']:
+            raise Exception('Push Api Error: [%s]' % data['error'])
 
-        if response.ok:
-            # Retry login
-            return self.login(apple_id=self.apple_id, password=self.password)
-        else:
-            # Unhandled respnose
-            response.raise_for_status()
+        return data
+
+    @staticmethod
+    def _perform_get_request(url, headers=None):
+        response = requests.get(
+            url,
+            headers=headers
+        )
+
+        return Api._parse_response(response)
+
+    @staticmethod
+    def _perform_post_request(url, data, headers=None):
+        response = requests.post(
+            url,
+            data=data,
+            headers=headers
+        )
+
+        return Api._parse_response(response, post_request=True)
+
+
+class Task(object):
+    """Simple object to encapsulate the result of a task.
+
+    Can also perform checks against the server to determine its status.
+    """
+    def __init__(self, uuid, callback=None, object_store=False):
+        self.uuid = uuid
+        self._result = None
+        self._resolved = False
+        self.callback = callback
+        self.object_store = object_store
+
+        self.timer = time.time()
+
+    @property
+    def result(self):
+        if not self._resolved:
+            raise Exception('Task has not resolved.')
+        return self._result
+
+    @result.setter
+    def result(self, value):
+        self._result = value
+        self._resolved = True
+
+        start_time = self.timer
+        self.timer = time.time() - start_time
+
+        if self.callback:
+            self.callback(self)
+
+    def wait_for_result(self, timeout=None):
+        start = time.time()
+
+        while not self.has_resolved:
+            time.sleep(0.1)
+            if timeout and start + timeout < time.time():
+                raise Exception('Task failed to resolve.')
+
+        return self._result
+
+    @property
+    def has_resolved(self):
+        return self._resolved

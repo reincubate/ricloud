@@ -1,1 +1,9 @@
+# Include the readme file
 include README.md
+
+# Include all code files
+recursive-include ricloud *
+
+# Exclude all bytecode
+global-exclude *.pyc
+global-exclude *.pyo

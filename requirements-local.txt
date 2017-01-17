@@ -1,0 +1,11 @@
+-r requirements.txt
+
+# Tests
+mock==2.0.0
+pytest==3.0.5
+pytest-mock==1.5
+pytest-cov==2.4.0
+tox==2.3.2
+
+# Packaging
+pypandoc==1.3.3

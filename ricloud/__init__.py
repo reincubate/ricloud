@@ -1,3 +1,1 @@
-"""Various scripts for communicating with Reincubate's iCloud API"""
-
-__version__ = "1.0.13"
+__version__ = '2.0.0'
