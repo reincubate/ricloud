@@ -1,3 +1,8 @@
+**2.0.2** - *released 19.01.2017*
+
+* Fix bug submitting 2FA code.
+* Updates to README.
+
 **2.0.1** - *released 18.01.2017*
 
 * Fix for pypi package release requirements.

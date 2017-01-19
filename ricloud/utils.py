@@ -89,8 +89,9 @@ def prompt_for_input(message, input_type=None):
                 output = input_type(output)
             except ValueError:
                 error_message('Invalid input type')
-            else:
-                break
+                continue
+
+        break
 
     return output
 
