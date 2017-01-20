@@ -55,7 +55,7 @@ class ChunkedDataHandler(HandlerBase):
         return self.tmp_handles[id]
 
     def on_complete_message(self, header, payload):
-        print '-*- message compelted -*-'
+        print '-*- message completed -*-'
         print header
         print payload.read()
 

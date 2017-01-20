@@ -177,7 +177,7 @@ class Task(object):
     @property
     def result(self):
         if not self._resolved:
-            raise Exception('Task has not resolved.')
+            raise Exception('Task has not completed, no result available.')
         return self._result
 
     @result.setter
@@ -197,7 +197,7 @@ class Task(object):
         while not self.has_resolved:
             time.sleep(0.1)
             if timeout and start + timeout < time.time():
-                raise Exception('Task failed to resolve.')
+                raise Exception('Task failed to complete within the timeout limit.')
 
         return self._result
 

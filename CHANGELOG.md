@@ -1,3 +1,8 @@
+**2.0.2** - *released 20.01.2017*
+
+* Tweak default task timeout value.
+* Minor copy changes.
+
 **2.0.2** - *released 19.01.2017*
 
 * Fix bug submitting 2FA code.
