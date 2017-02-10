@@ -59,7 +59,7 @@ def error_message(message):
 
 def error_message_and_exit(message, error_result):
     """Prints error messages in blue, the failed task result and quits."""
-    error_message('\n' + message)
+    error_message(message)
     puts(json.dumps(error_result, indent=2))
     sys.exit(1)
 
@@ -71,9 +71,9 @@ def print_prompt_values(values, message=None, sub_attr=None):
 
     for index, entry in enumerate(values):
         if sub_attr:
-            line = '{:2d}: {}'.format(index, getattr(entry, sub_attr))
+            line = '{:2d}: {}'.format(index, getattr(utf8(entry), sub_attr))
         else:
-            line = '{:2d}: {}'.format(index, entry)
+            line = '{:2d}: {}'.format(index, utf8(entry))
 
         with indent(3):
             print_message(line)
@@ -103,7 +103,7 @@ def prompt_for_choice(values, message, input_type=int, output_type=None):
         index = prompt_for_input(message, input_type=input_type)
 
         try:
-            output = values[index]
+            output = utf8(values[index])
         except IndexError:
             error_message('Selection out of range')
             continue

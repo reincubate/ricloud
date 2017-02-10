@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import time
 import requests
 
+from . import utils
 from .conf import settings
 
 
@@ -130,10 +131,17 @@ class Api(object):
 
     @staticmethod
     def _parse_response(response, post_request=False):
-        if not response.ok:
-            response.raise_for_status()
+        """Treat the response from ASApi.
 
+        The json is dumped before checking the status as even if the response is
+        not properly formed we are in trouble.
+
+        TODO: Streamline error checking.
+        """
         data = response.json()
+
+        if not response.ok:
+            utils.error_message_and_exit('Push Api Error:', data)
 
         if post_request and not data['success']:
             raise Exception('Push Api Error: [%s]' % data['error'])

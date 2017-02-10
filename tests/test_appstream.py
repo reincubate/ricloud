@@ -20,7 +20,7 @@ def stream_endpoints():
 
 class TestAppstream(object):
 
-    def test_rricloud_api_property(self, mock_Api, mock_Listener, mock_Stream):
+    def test_ricloud_api_property(self, mock_Api, mock_Listener, mock_Stream):
         """ Are we creating the Api properly? """
         RiCloud()
 

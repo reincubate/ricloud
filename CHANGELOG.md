@@ -1,4 +1,9 @@
-**2.0.2** - *released 20.01.2017*
+**2.0.4** - *released 10.02.2017*
+
+* Improve handling of error responses from ASApi.
+* Little encoding tweak for certain device names.
+
+**2.0.3** - *released 20.01.2017*
 
 * Tweak default task timeout value.
 * Minor copy changes.
