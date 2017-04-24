@@ -34,7 +34,7 @@ class TestAppstream(object):
         # Sometimes this test fails because the other thread needs time to execute...
         time.sleep(0.1)
         mock_RiCloudHandler.assert_called_once_with(api=ricloud_client.api)
-        mock_Listener.assert_called_once_with({'__ALL__': mock_RiCloudHandler.return_value}, log=None)
+        mock_Listener.assert_called_once_with({'__ALL__': mock_RiCloudHandler.return_value})
 
     def test_ricloud_stream_thread_property(self, mock_Thread, mock_Api, mock_Listener, mock_Stream, stream_endpoints):
         """ Are we creating the Stream properly? """
@@ -72,16 +72,3 @@ class TestAppstream(object):
         RiCloud()
 
         manager.assert_has_calls([mocker.call.api_setup(), mocker.call.stream_thread_start()])
-
-    def test_ricloud_log_error(self, mocker, mock_Api, mock_Listener, mock_Stream):
-        """ Are we creating the Listener properly? """
-        mock_RiCloudHandler = mocker.patch('ricloud.ricloud.RiCloudHandler')
-        mock_RiCloudHandler.handle.side_effect = StreamError("Test Error")
-        listener = Listener(
-            {'__ALL__': mock_RiCloudHandler},
-            log=None
-        )
-        listener._error = mocker.patch('ricloud.listener.Listener._error')
-
-        listener.on_message('{"type": "__ALL__"}', "")
-        listener._error.assert_called_once_with("Test Error")

@@ -27,3 +27,11 @@ OUTPUT_DIR = os.path.join(BASE_DIR, settings.get('output', 'output_directory'))
 LOG_DIRECTORY = os.path.join(BASE_DIR, settings.get('logging', 'logs_directory'))
 
 DEFAULT_LOG = os.path.join(LOG_DIRECTORY, 'ricloud.log')
+
+LOGGING_LEVEL = settings.get('logging', 'level')
+
+LISTENER_DB_HOST = settings.get('mysql', 'host')
+LISTENER_DB_PORT = settings.get('mysql', 'port')
+LISTENER_DB_NAME = settings.get('mysql', 'database')
+LISTENER_DB_USER = settings.get('mysql', 'username')
+LISTENER_DB_PASSWORD = settings.get('mysql', 'password')

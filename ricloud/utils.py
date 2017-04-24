@@ -187,28 +187,3 @@ def concurrent_get(request_list):
         return results
     else:
         return []
-
-
-class LogFile():
-
-    def __init__(self, log_file, error_file=None):
-        self.log_file = log_file
-
-        if not os.path.exists(os.path.dirname(self.log_file)):
-            os.makedirs(os.path.dirname(self.log_file))
-        open(self.log_file, 'w').close()
-        if not error_file:
-            self.error_file = self.log_file
-        else:
-            self.error_file = error_file
-            open(self.error_file, 'w').close()
-
-    def write(self, message, *args):
-        # General logging
-        with open(self.log_file, 'ab+') as f:
-            print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message, *args, file=f)
-
-    def error(self, message, *args):
-        # Error Logging
-        with open(self.error_file, 'ab+') as f:
-            print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message, *args, file=f)

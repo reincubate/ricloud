@@ -1,29 +1,35 @@
-**2.0.4** - *released 10.02.2017*
+**2.1.0** - *released 2017-04-24*
 
-* Improve handling of error responses from ASApi.
+* Added manager mode for use with *asmaster*.
+* Added listener mode for use with *aschannel*.
+* Added supporting database schema, etc. for listener mode.
+
+**2.0.4** - *released 2017-02-10*
+
+* Improve handling of error responses from *asapi*.
 * Little encoding tweak for certain device names.
 
-**2.0.3** - *released 20.01.2017*
+**2.0.3** - *released 2017-01-20*
 
 * Tweak default task timeout value.
 * Minor copy changes.
 
-**2.0.2** - *released 19.01.2017*
+**2.0.2** - *released 2017-01-19*
 
 * Fix bug submitting 2FA code.
 * Updates to README.
 
-**2.0.1** - *released 18.01.2017*
+**2.0.1** - *released 2017-01-18*
 
 * Fix for pypi package release requirements.
 
-**2.0.0** - *released 17.01.2017*
+**2.0.0** - *released 2017-01-17*
 
 * Inital release of the new ricloud API client. This implementation is not compatible with implementations of the `1.x.y` versions of the client.
 
 **1.0.13**
 
-* Improved Documentation.
+* Improved documentation.
 
 **1.0.12**
 
@@ -43,7 +49,7 @@
 
 **1.0.9**
 
-* Add support for iOS 10
+* Add support for iOS 10.
 
 **1.0.8**
 
