@@ -3,6 +3,7 @@
 Usage:
     ricloud <account> [--password=<password>] [--timeout=<timeout>]
     ricloud --listen [--timeout=<timeout>]
+    ricloud --list-services [--timeout=<timeout>]
     ricloud --list-subscriptions <service> [--timeout=<timeout>]
     ricloud --subscribe-account <username> <password> <service> [--timeout=<timeout>]
     ricloud --perform-2fa-challenge <account_id> <device_id> [--timeout=<timeout>]
@@ -25,7 +26,7 @@ Information:
     Manager mode:
         To send messages to asmaster, such as to register a new account.
         The following actions are available with this mode:
-            --list-subscriptions, --subscribe-account, --perform-2fa-challenge, --submit-2fa-challenge, --resubscribe-account, --unsubscribe-account, --list-devices, --subscribe-device, --unsubscribe-device
+            --list-services --list-subscriptions, --subscribe-account, --perform-2fa-challenge, --submit-2fa-challenge, --resubscribe-account, --unsubscribe-account, --list-devices, --subscribe-device, --unsubscribe-device
 
     Legacy interactive mode:
         For logging in to and downloading data from an account using with, without registering the account with asmaster (and without the corresponding locking prevention).
@@ -43,10 +44,12 @@ Options:
 from __future__ import unicode_literals
 
 import logging
+import json
+import os
 from docopt import docopt
 
 from .ricloud import RiCloud
-from .conf import DEFAULT_LOG, LOGGING_LEVEL
+from .conf import DEFAULT_LOG, LOGGING_LEVEL, LOG_DIRECTORY
 from .asmaster_api import AsmasterApi
 from .utils import select_service, select_samples
 
@@ -61,6 +64,7 @@ def _parse_input_arguments(arguments):
         }
 
     manager_mode_actions = [
+        'list-services',
         'list-subscriptions',
         'subscribe-account',
         'perform-2fa-challenge',
@@ -97,11 +101,13 @@ def main():
     # Format the input arguments for the application
     application_payload = _parse_input_arguments(arguments)
 
+    if not os.path.exists( LOG_DIRECTORY ):
+        os.makedirs( LOG_DIRECTORY )
+
     # setup the logger
     logging.basicConfig(filename=DEFAULT_LOG,
                         filemode='a',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                        datefmt='%H:%M:%S',
                         level=LOGGING_LEVEL)
 
     if application_payload['mode'] == 'interactive':
@@ -129,27 +135,29 @@ def main():
         api = AsmasterApi(application_payload['timeout'])
         api.setup()
 
+        if(arguments["--list-services"]):
+            print json.dumps( api.list_services(), indent=2)
         if(arguments["--list-subscriptions"]):
-            print api.list_subscriptions(arguments['<service>'])
+            print json.dumps( api.list_subscriptions(arguments['<service>']), indent=2)
         if(arguments["--subscribe-account"]):
-            print api.subscribe_account(
+            print json.dumps( api.subscribe_account(
                 arguments['<username>'],
                 arguments['<password>'],
-                arguments['<service>'])
+                arguments['<service>']), indent=2)
         if(arguments["--perform-2fa-challenge"]):
-            print api.perform_2fa_challenge(arguments['<account_id>'], arguments['<device_id>'])
+            print json.dumps( api.perform_2fa_challenge(arguments['<account_id>'], arguments['<device_id>']), indent=2)
         if(arguments["--submit-2fa-challenge"]):
-            print api.submit_2fa_challenge(arguments['<account_id>'], arguments['<code>'])
+            print json.dumps( api.submit_2fa_challenge(arguments['<account_id>'], arguments['<code>']), indent=2)
         if(arguments["--resubscribe-account"]):
-            print api.resubscribe_account(arguments['<account_id>'], arguments['<password>'])
+            print json.dumps( api.resubscribe_account(arguments['<account_id>'], arguments['<password>']), indent=2)
         if(arguments["--unsubscribe-account"]):
-            print api.unsubscribe_account(arguments['<account_id>'])
+            print json.dumps( api.unsubscribe_account(arguments['<account_id>']), indent=2)
         if(arguments["--list-devices"]):
-            print api.list_devices(arguments['<account_id>'])
+            print json.dumps( api.list_devices(arguments['<account_id>']), indent=2)
         if(arguments["--subscribe-device"]):
-            print api.subscribe_device(arguments['<account_id>'], arguments['<device_id>'])
+            print json.dumps( api.subscribe_device(arguments['<account_id>'], arguments['<device_id>']), indent=2)
         if(arguments["--unsubscribe-device"]):
-            print api.unsubscribe_device(arguments['<account_id>'], arguments['<device_id>'])
+            print json.dumps( api.unsubscribe_device(arguments['<account_id>'], arguments['<device_id>']), indent=2)
 
 if __name__ == '__main__':
     main()

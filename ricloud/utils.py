@@ -59,7 +59,8 @@ def error_message(message):
 
 def error_message_and_exit(message, error_result):
     """Prints error messages in blue, the failed task result and quits."""
-    error_message(message)
+    if message:
+        error_message(message)
     puts(json.dumps(error_result, indent=2))
     sys.exit(1)
 

@@ -36,10 +36,6 @@ class AsmasterApi(object):
             'Authorization': 'Token %s' % self.token,
         }
 
-    def _get_info(self):
-        """Fetch account information from ASApi host."""
-        return self._perform_get_request(self.list_services_endpoint, headers=self.token_header)
-
     @staticmethod
     def _parse_endpoint(endpoint):
         """Expect endpoint to be dictionary containing `protocol`, `host` and `uri` keys."""
@@ -58,7 +54,7 @@ class AsmasterApi(object):
                 self.services[service['name']][name] = action
 
     def setup(self):
-        info = self._get_info()
+        info = self.list_services()
         self._set_endpoints(info)
         self.retrieval_protocol = None
         self._set_allowed_services_and_actions(info['services'])
@@ -68,6 +64,10 @@ class AsmasterApi(object):
 
     def allowed_actions(self, service_name):
         return self.services[service_name].keys()
+
+    def list_services(self):
+        """Asks for a list of all services."""
+        return self._perform_post_request(self.list_services_endpoint, {}, self.token_header)
 
     def list_subscriptions(self, service):
         """Asks for a list of all subscribed accounts and devices, along with their statuses."""
@@ -146,10 +146,13 @@ class AsmasterApi(object):
         The json is dumped before checking the status as even if the response is
         not properly formed we are in trouble.
         """
-        data = response.json()
+        try:
+            data = response.json()
+        except:
+            raise ValueError( 'Unhandled HTTP %s response, shown truncated below:\n%s...' % ( response.status_code, response.text[:50] ) )
 
         if not response.ok:
-            utils.error_message_and_exit('Asmaster Api Error:', data)
+            utils.error_message_and_exit(None, data)
 
         if post_request and not data['success']:
             raise Exception('Asmaster Api Error: [%s]' % data['error'])
@@ -163,7 +166,7 @@ class AsmasterApi(object):
             timeout=self.timeout,
         )
         return self._parse_response(response)
-    
+
     def _perform_post_request(self, url, data, headers=None):
         response = requests.post(
             url,

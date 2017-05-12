@@ -25,7 +25,7 @@ class AsmasterListener(RiCloud):
         super(AsmasterListener, self).__init__(
             listener=Listener({'__ALL__': DatabaseWrtingHandler()}),
         )
-    
+
     @property
     def stream_thread_is_daemon(self):
         return False
@@ -42,7 +42,7 @@ class DatabaseWrtingHandler(RiCloudHandler):
         )
         self.file_location = file_location
         super(DatabaseWrtingHandler, self).__init__(api, callback)
-        
+
     def on_complete_message(self, header, stream):
         if header['type'] == 'system':
             body = stream.read()
@@ -83,7 +83,7 @@ class DatabaseWrtingHandler(RiCloudHandler):
                     header.get('device_id', None),
                     header.get('device_tag', None),
                     json.dumps(header),
-                    json.dumps(stream.read()),
+                    stream.read(),
                 )
             )
             self.conn.commit()
@@ -97,7 +97,7 @@ class DatabaseWrtingHandler(RiCloudHandler):
                 raise StreamError("Invalid download file request, file_id is too long")
 
             file_path = self.save_stream_to_file(header, stream, self.file_location)
-            
+
             cursor = self.conn.cursor()
             cursor.execute("""
                 INSERT INTO file (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `location`, `file_id`)
@@ -115,7 +115,7 @@ class DatabaseWrtingHandler(RiCloudHandler):
 
         else:
             raise StreamError("Unrecognised header type {}".format(header['type']))
-            
+
     @classmethod
     def save_stream_to_file(cls, header, stream, file_location):
         filename = cls.file_id_to_file_name(header['file_id'])
@@ -129,7 +129,7 @@ class DatabaseWrtingHandler(RiCloudHandler):
 
         if len(path) > 250:
             raise StreamError("File path too long, unable to save stream.")
-        
+
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
 

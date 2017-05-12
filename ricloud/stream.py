@@ -15,23 +15,26 @@ class Stream(object):
     def go(self):
         url = '%s://%s%s' % (self.protocol, self.host, self.url)
 
-        response = requests.get(
-            url,
-            {'stream': self.stream},
-            stream=True,
-            headers={
-                'Authorization': 'Token %s' % self.token
-            }
-        )
+        while True:
+            response = requests.get(
+                url,
+                {'stream': self.stream},
+                stream=True,
+                headers={
+                    'Authorization': 'Token %s' % self.token
+                }
+            )
 
-        if not response.ok:
-            print 'Something went wrong!'
-            print 'Status:', response.status_code
-            print response.content
-            return
+            if not response.ok:
+                print 'Something went wrong!'
+                print 'Status:', response.status_code
+                print response.content
+                return
 
-        self.streaming = True
-        self._consume(response)
+            self.streaming = True
+            self._consume(response)
+
+            print 'Stream dropped: reconnecting'
 
     def _consume(self, resp):
         buf = resp.raw

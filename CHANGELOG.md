@@ -1,3 +1,15 @@
+**2.1.1** - *released 2017-05-12*
+
+* Added support for `list-services`
+* Fixed setup migration from HTTP GET to POST
+* Correctly format output in manager mode as JSON, not serialised Python
+* Don't pollute nicely formed JSON errors
+* Automatic reconnection of the stream listener
+* Automatic creation of log folder
+* Added date to log format
+* Improved memory use in large MySQL inserts
+* Fixed escaping of JSON in feed.body field
+
 **2.1.0** - *released 2017-04-24*
 
 * Added manager mode for use with *asmaster*.
