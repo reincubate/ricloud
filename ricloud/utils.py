@@ -159,7 +159,7 @@ def profile(timer_text=''):
 
 
 def append_profile_info(string, info):
-    return string + colored.magenta(" completed in {0:.2f}s".format(info))
+    return utf8(string) + colored.magenta(" completed in {0:.2f}s".format(info))
 
 
 def _get_num_threads():

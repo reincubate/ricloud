@@ -13,6 +13,7 @@ Usage:
     ricloud --list-devices <account_id> [--timeout=<timeout>]
     ricloud --subscribe-device <account_id> <device_id> [--timeout=<timeout>]
     ricloud --unsubscribe-device <account_id> <device_id> [--timeout=<timeout>]
+    ricloud --reset-subscription-since <account_id> <datetime> [--timeout=<timeout>]
     ricloud --help
 
 
@@ -74,6 +75,7 @@ def _parse_input_arguments(arguments):
         'list-devices',
         'subscribe-device',
         'unsubscribe-device',
+        'reset-subscription-since',
     ]
 
     for action in manager_mode_actions:
@@ -136,28 +138,31 @@ def main():
         api.setup()
 
         if(arguments["--list-services"]):
-            print json.dumps( api.list_services(), indent=2)
+            print json.dumps(api.list_services(), indent=2)
         if(arguments["--list-subscriptions"]):
-            print json.dumps( api.list_subscriptions(arguments['<service>']), indent=2)
+            print json.dumps(api.list_subscriptions(arguments['<service>']), indent=2)
         if(arguments["--subscribe-account"]):
-            print json.dumps( api.subscribe_account(
+            print json.dumps(api.subscribe_account(
                 arguments['<username>'],
                 arguments['<password>'],
                 arguments['<service>']), indent=2)
         if(arguments["--perform-2fa-challenge"]):
-            print json.dumps( api.perform_2fa_challenge(arguments['<account_id>'], arguments['<device_id>']), indent=2)
+            print json.dumps(api.perform_2fa_challenge(arguments['<account_id>'], arguments['<device_id>']), indent=2)
         if(arguments["--submit-2fa-challenge"]):
-            print json.dumps( api.submit_2fa_challenge(arguments['<account_id>'], arguments['<code>']), indent=2)
+            print json.dumps(api.submit_2fa_challenge(arguments['<account_id>'], arguments['<code>']), indent=2)
         if(arguments["--resubscribe-account"]):
-            print json.dumps( api.resubscribe_account(arguments['<account_id>'], arguments['<password>']), indent=2)
+            print json.dumps(api.resubscribe_account(arguments['<account_id>'], arguments['<password>']), indent=2)
         if(arguments["--unsubscribe-account"]):
-            print json.dumps( api.unsubscribe_account(arguments['<account_id>']), indent=2)
+            print json.dumps(api.unsubscribe_account(arguments['<account_id>']), indent=2)
         if(arguments["--list-devices"]):
-            print json.dumps( api.list_devices(arguments['<account_id>']), indent=2)
+            print json.dumps(api.list_devices(arguments['<account_id>']), indent=2)
         if(arguments["--subscribe-device"]):
-            print json.dumps( api.subscribe_device(arguments['<account_id>'], arguments['<device_id>']), indent=2)
+            print json.dumps(api.subscribe_device(arguments['<account_id>'], arguments['<device_id>']), indent=2)
         if(arguments["--unsubscribe-device"]):
-            print json.dumps( api.unsubscribe_device(arguments['<account_id>'], arguments['<device_id>']), indent=2)
+            print json.dumps(api.unsubscribe_device(arguments['<account_id>'], arguments['<device_id>']), indent=2)
+        if(arguments["--reset-subscription-since"]):
+            print json.dumps(api.reset_subscription_since(arguments['<account_id>'], arguments['<datetime>']), indent=2)
+
 
 if __name__ == '__main__':
     main()
