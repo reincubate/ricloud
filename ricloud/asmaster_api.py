@@ -2,7 +2,6 @@
 
 from __future__ import absolute_import
 
-import time
 import requests
 
 from . import utils
@@ -17,18 +16,31 @@ class AsmasterApi(object):
         self.host = settings.get('hosts', 'asmaster_host')
         self.token = settings.get('auth', 'token')
 
-        self.list_services_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'list_services'))
-        self.list_subscriptions_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'list_subscriptions'))
-        self.subscribe_account_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'subscribe_account'))
-        self.perform_2fa_challenge_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'perform_2fa_challenge'))
-        self.submit_2fa_challenge_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'submit_2fa_challenge'))
-        self.list_devices_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'list_devices'))
-        self.subscribe_device_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'subscribe_device'))
-        self.resubscribe_account_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'resubscribe_account'))
-        self.unsubscribe_device_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'unsubscribe_device'))
-        self.unsubscribe_account_endpoint = '%s%s' % (self.host, settings.get('asmaster_endpoints', 'unsubscribe_account'))
+        self.list_services_endpoint = self._build_endpoint('list_services')
+        self.list_subscriptions_endpoint = self._build_endpoint('list_subscriptions')
+        self.subscribe_account_endpoint = self._build_endpoint('subscribe_account')
+        self.perform_2fa_challenge_endpoint = self._build_endpoint('perform_2fa_challenge')
+        self.submit_2fa_challenge_endpoint = self._build_endpoint('submit_2fa_challenge')
+        self.list_devices_endpoint = self._build_endpoint('list_devices')
+        self.subscribe_device_endpoint = self._build_endpoint('subscribe_device')
+        self.resubscribe_account_endpoint = self._build_endpoint('resubscribe_account')
+        self.unsubscribe_device_endpoint = self._build_endpoint('unsubscribe_device')
+        self.unsubscribe_account_endpoint = self._build_endpoint('unsubscribe_account')
+        self.reset_subscription_since_endpoint = self._build_endpoint('reset_subscription_since')
 
         self.services = {}
+
+    def _build_endpoint(self, endpoint_name):
+        """Generate an enpoint url from a setting name.
+
+        Args:
+            endpoint_name(str): setting name for the enpoint to build
+
+        Returns:
+            (str) url enpoint
+        """
+        endpoint_relative = settings.get('asmaster_endpoints', endpoint_name)
+        return '%s%s' % (self.host, endpoint_relative)
 
     @property
     def token_header(self):
@@ -139,6 +151,27 @@ class AsmasterApi(object):
 
         return self._perform_post_request(self.unsubscribe_device_endpoint, data, self.token_header)
 
+    def reset_subscription_since(self, account_id, datetime_str):
+        """Handler for `--reset-subscription-since` command.
+
+        Args:
+            account_id(int): id of the account to reset.
+            datetime_str(str): string representing the datetime used in the
+                next poll to retrieve data since.
+
+        Returns:
+            (str) json encoded response.
+
+        NOTES:
+            We don't care about validation here, we demand the responsibility to
+            the backend.
+        """
+        data = {
+            'account_id': account_id,
+            'datetime': datetime_str,
+        }
+        return self._perform_post_request(self.reset_subscription_since_endpoint, data, self.token_header)
+
     @staticmethod
     def _parse_response(response, post_request=False):
         """Treat the response from ASApi.
@@ -149,7 +182,10 @@ class AsmasterApi(object):
         try:
             data = response.json()
         except:
-            raise ValueError( 'Unhandled HTTP %s response, shown truncated below:\n%s...' % ( response.status_code, response.text[:50] ) )
+            msg = 'Unhandled HTTP %s response, shown truncated below:\n%s...' % (
+                response.status_code, response.text[:50]
+            )
+            raise ValueError(msg)
 
         if not response.ok:
             utils.error_message_and_exit(None, data)

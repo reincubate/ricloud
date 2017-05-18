@@ -22,3 +22,7 @@ configs/
 .coverage
 coverage.xml
 reports/
+
+# Ingore build and config
+build/
+config/

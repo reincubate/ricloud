@@ -1,3 +1,8 @@
+**2.2.0** - *released 2017-05-18*
+
+* Added support for `reset-subscription-since`
+* Fixed escaping file paths
+
 **2.1.1** - *released 2017-05-12*
 
 * Added support for `list-services`
