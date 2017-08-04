@@ -1,3 +1,7 @@
+**2.2.1** - *released 2017-08-04*
+
+* Added database connection management to asmaster listener implementation.
+
 **2.2.0** - *released 2017-05-18*
 
 * Added support for `reset-subscription-since`

@@ -2,21 +2,14 @@ import os
 import re
 import json
 import shutil
-import hashlib
 import logging
+import hashlib
 import MySQLdb
-from io import BytesIO
-from cached_property import cached_property
 
-from .api import Api
-from conf import (
-    OUTPUT_DIR, LISTENER_DB_HOST, LISTENER_DB_PORT, LISTENER_DB_NAME,
-    LISTENER_DB_USER, LISTENER_DB_PASSWORD
-)
 from .ricloud import RiCloud
 from .listener import Listener
 from .handlers import RiCloudHandler, StreamError
-from .asmaster_api import AsmasterApi
+from . import conf
 
 
 class AsmasterListener(RiCloud):
@@ -32,38 +25,61 @@ class AsmasterListener(RiCloud):
 
 
 class DatabaseWrtingHandler(RiCloudHandler):
-    def __init__(self, api=None, callback=None, db=LISTENER_DB_NAME, file_location=OUTPUT_DIR):
-        self.conn = MySQLdb.connect(
-            host=LISTENER_DB_HOST,
-            port=int(LISTENER_DB_PORT),
-            user=LISTENER_DB_USER,
-            passwd=LISTENER_DB_PASSWORD,
-            db=db,
-        )
+    def __init__(self, api=None, callback=None, db=conf.LISTENER_DB_NAME, file_location=conf.OUTPUT_DIR):
+        self.db = db
         self.file_location = file_location
         super(DatabaseWrtingHandler, self).__init__(api, callback)
+
+    _db_con = None
+
+    @property
+    def db_con(self):
+        if not self._db_con:
+            self._db_con = MySQLdb.connect(
+                host=conf.LISTENER_DB_HOST,
+                port=int(conf.LISTENER_DB_PORT),
+                user=conf.LISTENER_DB_USER,
+                passwd=conf.LISTENER_DB_PASSWORD,
+                db=self.db
+            )
+        return self._db_con
+
+    def handle_query(self, query, args=None, retry=2):
+        try:
+            cursor = self.db_con.cursor()
+            cursor.execute(query, args=args)
+            self.db_con.commit()
+        except (AttributeError, MySQLdb.OperationalError):
+            if not retry:
+                raise
+
+            logging.warn('asmaster listener handler query failed, attempting to refresh database connection.')
+            self._db_con = None
+            self.handle_query(query, args=args, retry=retry - 1)
 
     def on_complete_message(self, header, stream):
         if header['type'] == 'system':
             body = stream.read()
             json_body = json.loads(body)
+
             try:
                 code = json_body['code'][:200]
             except KeyError:
                 code = None
 
-            cursor = self.conn.cursor()
-
-            cursor.execute("""
+            query = """
                 INSERT INTO system (`received`, `headers`, `body`, `message`, `code`)
-                VALUES (NOW(), %s, %s, %s, %s)""", (
-                    json.dumps(header),
-                    body,
-                    json_body['message'][:200],
-                    code,
-                )
-            )
-            self.conn.commit()
+                VALUES (NOW(), %(headers)s, %(body)s, %(message)s, %(code)s)
+            """
+
+            args = {
+                "headers": json.dumps(header),
+                "body": body,
+                "message": json_body['message'][:200],
+                "code": code,
+            }
+
+            self.handle_query(query, args)
 
             if "error" in body:
                 raise StreamError(body)
@@ -74,19 +90,22 @@ class DatabaseWrtingHandler(RiCloudHandler):
             else:
                 table = header['type']
 
-            cursor = self.conn.cursor()
-            cursor.execute("""
-                INSERT INTO {} (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `body`)
-                VALUES (%s, NOW(), %s, %s, %s, %s, %s)""".format(table), (
-                    header['service'],
-                    header.get('account_id', None),
-                    header.get('device_id', None),
-                    header.get('device_tag', None),
-                    json.dumps(header),
-                    stream.read(),
-                )
-            )
-            self.conn.commit()
+            query = """
+                INSERT INTO {table} (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `body`)
+                VALUES (%(service)s, NOW(), %(account_id)s, %(device_id)s, %(device_tag)s, %(headers)s, %(body)s)
+            """.format(table=table)  # noqa
+
+            args = {
+                "table": table,
+                "service": header['service'],
+                "account_id": header.get('account_id', None),
+                "device_id": header.get('device_id', None),
+                "device_tag": header.get('device_tag', None),
+                "headers": json.dumps(header),
+                "body": json.dumps(stream.read()),
+            }
+
+            self.handle_query(query, args)
 
         elif header['type'] == 'download-file':
             try:
@@ -98,20 +117,22 @@ class DatabaseWrtingHandler(RiCloudHandler):
 
             file_path = self.save_stream_to_file(header, stream, self.file_location)
 
-            cursor = self.conn.cursor()
-            cursor.execute("""
+            query = """
                 INSERT INTO file (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `location`, `file_id`)
-                VALUES (%s, NOW(), %s, %s, %s, %s, %s, %s)""", (
-                    header['service'],
-                    header.get('account_id', None),
-                    header.get('device_id', None),
-                    header.get('device_tag', None),
-                    json.dumps(header),
-                    file_path,
-                    file_id,
-                )
-            )
-            self.conn.commit()
+                VALUES (%(service)s, NOW(), %(account_id)s, %(device_id)s, %(device_tag)s, %(headers)s, %(location)s, %(file_id)s)
+            """  # noqa
+
+            args = {
+                "service": header['service'],
+                "account_id": header.get('account_id', None),
+                "device_id": header.get('device_id', None),
+                "device_tag": header.get('device_tag', None),
+                "headers": json.dumps(header),
+                "location": file_path,
+                "file_id": file_id,
+            }
+
+            self.handle_query(query, args)
 
         else:
             raise StreamError("Unrecognised header type {}".format(header['type']))
