@@ -55,15 +55,15 @@ class iCloudClient(BaseClient):
             payload={},
             callback=None)
 
-    def data(self, account, device, data, callback=None):
+    def data(self, account, data, device=None, callback=None):
+        payload = {'data': data}
+        if device:
+            payload['device'] = device
         return self.ricloud.api.perform_task(
             service=self.service,
             task_name='fetch-data',
             account=account,
-            payload={
-                'data': data,
-                'device': device
-            },
+            payload=payload,
             callback=callback
         )
 
