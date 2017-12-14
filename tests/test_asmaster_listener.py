@@ -11,7 +11,7 @@ from ricloud.conf import (
     OUTPUT_DIR, LISTENER_DB_HOST, LISTENER_DB_PORT, LISTENER_DB_NAME,
     LISTENER_DB_USER, LISTENER_DB_PASSWORD
 )
-from ricloud.asmaster_listener import DatabaseWrtingHandler
+from ricloud.asmaster_listener import DatabaseWritingHandler
 
 
 SMS_FILE_ID = '3d0d7e5fb2ce288813306e4d4636395e047a3d28'
@@ -28,7 +28,7 @@ SAMPLE_FILE_CONTENTS = "Sample file"
 
 class TestAsmasterListener(object):
     DB_NAME = "ricloud_test"
-    
+
     def setup(self):
         self.remove_test_db()
 
@@ -37,10 +37,10 @@ class TestAsmasterListener(object):
             with open(test_schema_path, "w+") as test:
                 for line in original.readlines():
                     test.write(line.replace("ricloud", self.DB_NAME))
-                    
+
         subprocess.check_output("mysql -u {} < {}".format(LISTENER_DB_USER, test_schema_path), shell=True)
         os.remove(test_schema_path)
-        
+
         self.conn = MySQLdb.connect(
             host=LISTENER_DB_HOST,
             port=int(LISTENER_DB_PORT),
@@ -54,7 +54,7 @@ class TestAsmasterListener(object):
             self.counts[table] = cursor.execute("SELECT * FROM {}".format(table))
 
         self.test_file_location = os.path.join(OUTPUT_DIR, "test")
-        self.handler = DatabaseWrtingHandler(
+        self.handler = DatabaseWritingHandler(
             db=self.DB_NAME,
             file_location=self.test_file_location,
         )
@@ -62,7 +62,7 @@ class TestAsmasterListener(object):
     def teardown(self):
         self.conn.close()
         self.remove_test_db()
-        
+
         if os.path.isdir(self.test_file_location):
             shutil.rmtree(self.test_file_location)
 
@@ -85,7 +85,7 @@ class TestAsmasterListener(object):
         headers = {'type': 'system'}
         self.handler.on_complete_message(headers, stream)
         result = self.new_lines('system')
-        
+
         assert len(result) == 1
         result = result[0]
         assert len(result[2]) == len(json.dumps(headers))
@@ -207,9 +207,9 @@ class TestAsmasterListener(object):
 
 class TestFileIdToFileName(object):
     def test_normal_fileid(self):
-        assert DatabaseWrtingHandler.file_id_to_file_name(SMS_FILE_ID) == SMS_FILE_ID
+        assert DatabaseWritingHandler.file_id_to_file_name(SMS_FILE_ID) == SMS_FILE_ID
 
     def test_alterate_fileid(self):
-        result = DatabaseWrtingHandler.file_id_to_file_name("dtouch://749301")
+        result = DatabaseWritingHandler.file_id_to_file_name("dtouch://749301")
         assert 43 == len(result)
         assert re.match("^[a-z0-9_]+$", result)

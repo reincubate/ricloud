@@ -1,3 +1,12 @@
+**2.3.0** - *released 2017-12-14*
+
+* Increase the stream listener's resilience to connectivity interruptions using a simple retry mechanism.
+* Report data consumption back to *asapi* when received through the *asmaster* listener. This helps us track whether data is being retrieved correctly.
+
+**2.2.2** - *released 2017-10-24*
+
+* Added live-only datatype sample application. This serves as an example of how to access account wide datatypes such as live browser history or iCloud Photo Library.
+
 **2.2.1** - *released 2017-08-04*
 
 * Added database connection management to asmaster listener implementation.

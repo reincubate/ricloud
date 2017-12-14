@@ -1,4 +1,8 @@
+import time
+import logging
 import requests
+
+from requests.packages import urllib3
 
 
 class Stream(object):
@@ -11,35 +15,36 @@ class Stream(object):
         self.listener = listener
 
         self.streaming = False
+        self.retry_count = 0
 
     def go(self):
         url = '%s://%s%s' % (self.protocol, self.host, self.url)
 
         while True:
-            response = requests.get(
-                url,
-                {'stream': self.stream},
-                stream=True,
-                headers={
-                    'Authorization': 'Token %s' % self.token
-                }
-            )
+            try:
+                self._go(url)
+            except (requests.exceptions.ConnectionError, urllib3.exceptions.ProtocolError):
+                logging.error('Connection failed unexpectedly with error.', exc_info=True)
 
-            if not response.ok:
-                print 'Something went wrong!'
-                print 'Status:', response.status_code
-                print response.content
-                return
+            self._retry_wait()
 
-            self.streaming = True
-            self._consume(response)
+    def _go(self, url):
+        response = requests.get(
+            url,
+            {'stream': self.stream},
+            stream=True,
+            headers={
+                'Authorization': 'Token %s' % self.token
+            }
+        )
 
-            print 'Stream dropped: reconnecting'
+        self._process_initial_response(response)
+        self._consume(response)
 
-    def _consume(self, resp):
-        buf = resp.raw
+    def _consume(self, response):
+        buf = response.raw
 
-        while not resp.raw.closed:
+        while not buf.closed:
             line = buf.readline().strip()
 
             if not line:
@@ -51,5 +56,19 @@ class Stream(object):
                 body = buf.read(length - 2)
                 self.listener.on_message(header, body)
 
-        print 'Connection closed.'
-        print resp.raw.read()
+        logging.warn('Connection closed, final message: %s', buf.read())
+
+    def _process_initial_response(self, response):
+        response.raise_for_status()
+
+        logging.debug('Stream connection established.')
+        self.streaming = True
+        self.retry_count = 0
+
+    def _retry_wait(self):
+        self.retry_count += 1
+        retry_wait = min(max((self.retry_count - 2), 0) ** 2, 60)  # Increase quadratically to a maximum of 60s.
+
+        logging.warning('Attempting reconnect number %d in %d seconds.', self.retry_count, retry_wait)
+
+        time.sleep(retry_wait)

@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 
 import time
+import logging
 import requests
 
 from . import utils
@@ -110,6 +111,7 @@ class Api(object):
 
     def result_consumed(self, task_id):
         """Report the result as successfully consumed."""
+        logging.debug('API Sending result consumed message.')
         data = {
             'task_ids': task_id,
         }

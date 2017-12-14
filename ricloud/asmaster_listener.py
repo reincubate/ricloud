@@ -6,6 +6,7 @@ import logging
 import hashlib
 import MySQLdb
 
+from .api import Api
 from .ricloud import RiCloud
 from .listener import Listener
 from .handlers import RiCloudHandler, StreamError
@@ -13,10 +14,14 @@ from . import conf
 
 
 class AsmasterListener(RiCloud):
-    def __init__(self, timeout):
+    def __init__(self, timeout, api=None):
         self.timeout = timeout
+
+        self.api = api or Api()
+
         super(AsmasterListener, self).__init__(
-            listener=Listener({'__ALL__': DatabaseWrtingHandler()}),
+            api=self.api,
+            listener=Listener({'__ALL__': DatabaseWritingHandler(api=self.api)})
         )
 
     @property
@@ -24,11 +29,11 @@ class AsmasterListener(RiCloud):
         return False
 
 
-class DatabaseWrtingHandler(RiCloudHandler):
+class DatabaseWritingHandler(RiCloudHandler):
     def __init__(self, api=None, callback=None, db=conf.LISTENER_DB_NAME, file_location=conf.OUTPUT_DIR):
         self.db = db
         self.file_location = file_location
-        super(DatabaseWrtingHandler, self).__init__(api, callback)
+        super(DatabaseWritingHandler, self).__init__(api, callback)
 
     _db_con = None
 
@@ -106,6 +111,7 @@ class DatabaseWrtingHandler(RiCloudHandler):
             }
 
             self.handle_query(query, args)
+            self.api.result_consumed(header.get('task_id'))
 
         elif header['type'] == 'download-file':
             try:
@@ -133,6 +139,7 @@ class DatabaseWrtingHandler(RiCloudHandler):
             }
 
             self.handle_query(query, args)
+            self.api.result_consumed(header.get('task_id'))
 
         else:
             raise StreamError("Unrecognised header type {}".format(header['type']))
