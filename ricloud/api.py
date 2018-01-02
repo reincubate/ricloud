@@ -131,6 +131,22 @@ class Api(object):
         except KeyError:
             pass
 
+    _consumed_tasks = []
+
+    def append_consumed_task(self, task):
+        self._consumed_tasks.append(task)
+
+    def listen(self):
+        try:
+            while True:
+                if self._consumed_tasks:
+                    consumed_task = self._consumed_tasks.pop(0)
+                    consumed_task.trigger_callback()
+                else:
+                    time.sleep(0.1)
+        except KeyboardInterrupt:
+            pass
+
     @staticmethod
     def _parse_response(response, post_request=False):
         """Treat the response from ASApi.
@@ -175,12 +191,11 @@ class Task(object):
 
     Can also perform checks against the server to determine its status.
     """
-    def __init__(self, uuid, callback=None, object_store=False):
+    def __init__(self, uuid, callback=None):
         self.uuid = uuid
         self._result = None
         self._resolved = False
         self.callback = callback
-        self.object_store = object_store
 
         self.timer = time.time()
 
@@ -198,6 +213,9 @@ class Task(object):
         start_time = self.timer
         self.timer = time.time() - start_time
 
+        self.trigger_callback()
+
+    def trigger_callback(self):
         if self.callback:
             self.callback(self)
 

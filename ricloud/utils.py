@@ -4,7 +4,7 @@ import os
 import sys
 import time
 import json
-import datetime
+import shutil
 import requests
 from multiprocessing.pool import ThreadPool
 
@@ -21,6 +21,24 @@ def get_or_create_filepath(filename, directory=''):
         os.makedirs(absolute_dir)
 
     return os.path.join(absolute_dir, filename)
+
+
+def save_file_stream_to_target_path(file_stream, target_path, base_dir=OUTPUT_DIR):
+    path = os.path.join(base_dir, target_path)
+
+    if len(path) > 250:
+        raise Exception('Path too long, could not write file to disk.')
+
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+
+    if os.path.isfile(path):
+        os.remove(path)
+
+    with open(path, 'w') as f:
+        shutil.copyfileobj(file_stream, f)
+
+    return path
 
 
 def utf8(message):

@@ -1,4 +1,5 @@
 import os
+import logging
 import ConfigParser
 
 
@@ -25,10 +26,18 @@ BASE_DIR = os.getcwd()
 OUTPUT_DIR = os.path.join(BASE_DIR, settings.get('output', 'output_directory'))
 
 LOG_DIRECTORY = os.path.join(BASE_DIR, settings.get('logging', 'logs_directory'))
+LOG_FILE = os.path.join(LOG_DIRECTORY, 'ricloud.log')
+LOG_LEVEL = settings.get('logging', 'level')
 
-DEFAULT_LOG = os.path.join(LOG_DIRECTORY, 'ricloud.log')
+if not os.path.exists(LOG_DIRECTORY):
+    os.makedirs(LOG_DIRECTORY)
 
-LOGGING_LEVEL = settings.get('logging', 'level')
+logging.basicConfig(
+    filename=LOG_FILE,
+    filemode='a',
+    format='[%(asctime)s: %(levelname)s/%(processName)s/%(thread)d] [%(name)s:%(lineno)s] %(message)s',
+    level=LOG_LEVEL
+)
 
 LISTENER_DB_HOST = settings.get('mysql', 'host')
 LISTENER_DB_PORT = settings.get('mysql', 'port')

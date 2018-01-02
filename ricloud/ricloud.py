@@ -25,10 +25,6 @@ class RiCloud(object):
         else:
             self.stream_thread.start()
 
-    @property
-    def stream_thread_is_daemon(self):
-        return True
-
     @cached_property
     def stream_thread(self):
         stream = settings.get('stream', 'stream_endpoint')
@@ -46,7 +42,7 @@ class RiCloud(object):
             s.go()
 
         stream_thread = threading.Thread(target=_start)
-        stream_thread.daemon = self.stream_thread_is_daemon
+        stream_thread.daemon = True
         return stream_thread
 
     @cached_property

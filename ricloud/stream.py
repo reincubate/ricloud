@@ -54,7 +54,10 @@ class Stream(object):
                 header = buf.read(length)
                 length = int(buf.readline().strip())
                 body = buf.read(length - 2)
+
                 self.listener.on_message(header, body)
+
+                buf.readline()  # Always have a final carriage return at the end of a message.
 
         logging.warn('Connection closed, final message: %s', buf.read())
 

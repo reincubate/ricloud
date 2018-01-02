@@ -1,0 +1,25 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/python:2.7
+      - image: circleci/mysql:5.7
+        environment:
+          - MYSQL_ROOT_HOST=%
+          - MYSQL_DATABASE=ricloud_test
+          - MYSQL_USER=localdev
+          - MYSQL_PASSWORD=localdev
+    steps:
+      - checkout
+      - run:
+          name: system dependencies
+          command: sudo apt-get install -y build-essential libmysqlclient-dev libxml2-dev
+      - run:
+          name: test dependencies
+          command: sudo pip install tox
+      - run:
+          name: test
+          command: tox
+      - run: mv reports/htmlcov $CIRCLE_ARTIFACTS
+      - run: mv reports $CIRCLE_TEST_REPORTS/reports

@@ -1,3 +1,10 @@
+**2.3.1** - *released 2018-01-02*
+
+* Make the *asmaster* listener similar in design to the interactive *asapi* mode by splitting out the stream consumer to a different thread.
+* Move task result processing responsibilities from the stream consumer thread to the main thread. This releases the stream consumer thread from needing wasteful IO operations.
+* Some cleanup of tests and initial configuration for CircleCI testing integration.
+* A little bit of config and code cleanup.
+
 **2.3.0** - *released 2017-12-14*
 
 * Increase the stream listener's resilience to connectivity interruptions using a simple retry mechanism.

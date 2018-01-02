@@ -1,181 +1,208 @@
 import os
 import re
 import json
-import shutil
-import logging
+import time
 import hashlib
-import MySQLdb
+import logging
 
-from .api import Api
+from .api import Api, Task
 from .ricloud import RiCloud
 from .listener import Listener
 from .handlers import RiCloudHandler, StreamError
-from . import conf
+from .helpers import DatabaseHandler
+from . import utils
+
+
+database_handler = DatabaseHandler()
 
 
 class AsmasterListener(RiCloud):
+
     def __init__(self, timeout, api=None):
         self.timeout = timeout
 
         self.api = api or Api()
 
+        handlers = [AsmasterSystemHandler, AsmasterFeedHandler, AsmasterMessageHandler, AsmasterDownloadFileHandler]
+
+        handlers_dict = dict((handler.TYPE, handler(api=self.api)) for handler in handlers)
+
         super(AsmasterListener, self).__init__(
             api=self.api,
-            listener=Listener({'__ALL__': DatabaseWritingHandler(api=self.api)})
+            listener=Listener(handlers_dict)
         )
 
-    @property
-    def stream_thread_is_daemon(self):
-        return False
+        self.api.listen()
 
 
-class DatabaseWritingHandler(RiCloudHandler):
-    def __init__(self, api=None, callback=None, db=conf.LISTENER_DB_NAME, file_location=conf.OUTPUT_DIR):
-        self.db = db
-        self.file_location = file_location
-        super(DatabaseWritingHandler, self).__init__(api, callback)
-
-    _db_con = None
-
-    @property
-    def db_con(self):
-        if not self._db_con:
-            self._db_con = MySQLdb.connect(
-                host=conf.LISTENER_DB_HOST,
-                port=int(conf.LISTENER_DB_PORT),
-                user=conf.LISTENER_DB_USER,
-                passwd=conf.LISTENER_DB_PASSWORD,
-                db=self.db
-            )
-        return self._db_con
-
-    def handle_query(self, query, args=None, retry=2):
-        try:
-            cursor = self.db_con.cursor()
-            cursor.execute(query, args=args)
-            self.db_con.commit()
-        except (AttributeError, MySQLdb.OperationalError):
-            if not retry:
-                raise
-
-            logging.warn('asmaster listener handler query failed, attempting to refresh database connection.')
-            self._db_con = None
-            self.handle_query(query, args=args, retry=retry - 1)
+class AsmasterHandler(RiCloudHandler):
+    TYPE = ''
+    TABLE = None
 
     def on_complete_message(self, header, stream):
-        if header['type'] == 'system':
-            body = stream.read()
-            json_body = json.loads(body)
+        task = AsmasterTask(header.get('task_id'), callback=self.generate_callback())
+        task.headers = header
+        task.result = stream.read()
 
-            try:
-                code = json_body['code'][:200]
-            except KeyError:
-                code = None
+        self.api.append_consumed_task(task)
 
+
+class AsmasterSystemHandler(AsmasterHandler):
+    TYPE = 'system'
+    TABLE = 'system'
+
+    def generate_callback(self):
+        def callback(task):
             query = """
-                INSERT INTO system (`received`, `headers`, `body`, `message`, `code`)
+                INSERT INTO {table} (`received`, `headers`, `body`, `message`, `code`)
                 VALUES (NOW(), %(headers)s, %(body)s, %(message)s, %(code)s)
-            """
+            """.format(table=self.TABLE)
+
+            parsed_body = json.loads(task.result)
+
+            message = parsed_body.get('message')
+            code = parsed_body.get('code')
 
             args = {
-                "headers": json.dumps(header),
-                "body": body,
-                "message": json_body['message'][:200],
-                "code": code,
+                'headers': json.dumps(task.headers),
+                'body': task.result,
+                'message': message and message[:200] or None,
+                'code': code and code[:200] or None,
             }
 
-            self.handle_query(query, args)
+            database_handler.handle_query(query, args)
 
-            if "error" in body:
-                raise StreamError(body)
+            if "error" in task.result:
+                logging.error('System error message: %s', task.result)
 
-        elif header['type'] in {'fetch-data', 'message'}:
-            if header['type'] == 'fetch-data':
-                table = 'feed'
-            else:
-                table = header['type']
+        return callback
 
+
+class AsmasterFeedHandler(AsmasterHandler):
+    TYPE = 'fetch-data'
+    TABLE = 'feed'
+
+    def generate_callback(self):
+        def callback(task):
             query = """
                 INSERT INTO {table} (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `body`)
                 VALUES (%(service)s, NOW(), %(account_id)s, %(device_id)s, %(device_tag)s, %(headers)s, %(body)s)
-            """.format(table=table)  # noqa
+            """.format(table=self.TABLE)
 
             args = {
-                "table": table,
-                "service": header['service'],
-                "account_id": header.get('account_id', None),
-                "device_id": header.get('device_id', None),
-                "device_tag": header.get('device_tag', None),
-                "headers": json.dumps(header),
-                "body": json.dumps(stream.read()),
+                'service': task.headers['service'],
+                'account_id': task.headers.get('account_id', None),
+                'device_id': task.headers.get('device_id', None),
+                'device_tag': task.headers.get('device_tag', None),
+                'headers': json.dumps(task.headers),
+                'body': json.dumps(task.result),
             }
 
-            self.handle_query(query, args)
-            self.api.result_consumed(header.get('task_id'))
+            database_handler.handle_query(query, args)
+            self.api.result_consumed(task.uuid)
 
-        elif header['type'] == 'download-file':
-            try:
-                file_id = header['file_id']
-            except KeyError:
-                raise StreamError("Invalid download file request, no file_id")
+        return callback
+
+
+class AsmasterMessageHandler(AsmasterFeedHandler):
+    TYPE = 'message'
+    TABLE = 'message'
+
+
+class AsmasterDownloadFileHandler(AsmasterHandler):
+    TYPE = 'download-file'
+    TABLE = 'file'
+
+    def on_complete_message(self, header, stream):
+        task = AsmasterTask(header.get('task_id'), callback=self.generate_callback())
+        task.headers = header
+
+        target_path = self.get_target_path(task.headers)
+
+        file_path = utils.save_file_stream_to_target_path(stream, target_path)
+
+        task.result = file_path
+
+        self.api.append_consumed_task(task)
+
+    def generate_callback(self):
+        def callback(task):
+            file_id = task.headers['file_id']
+
             if len(file_id) > 4096:
                 raise StreamError("Invalid download file request, file_id is too long")
 
-            file_path = self.save_stream_to_file(header, stream, self.file_location)
-
             query = """
-                INSERT INTO file (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `location`, `file_id`)
-                VALUES (%(service)s, NOW(), %(account_id)s, %(device_id)s, %(device_tag)s, %(headers)s, %(location)s, %(file_id)s)
-            """  # noqa
+                INSERT INTO {table}
+                    (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `location`, `file_id`)
+                VALUES (
+                    %(service)s, NOW(), %(account_id)s, %(device_id)s,
+                     %(device_tag)s, %(headers)s, %(location)s, %(file_id)s
+                )
+            """.format(table=self.TABLE)
 
             args = {
-                "service": header['service'],
-                "account_id": header.get('account_id', None),
-                "device_id": header.get('device_id', None),
-                "device_tag": header.get('device_tag', None),
-                "headers": json.dumps(header),
-                "location": file_path,
+                "service": task.headers['service'],
+                "account_id": task.headers.get('account_id', None),
+                "device_id": task.headers.get('device_id', None),
+                "device_tag": task.headers.get('device_tag', None),
+                "headers": json.dumps(task.headers),
+                "location": task.result,
                 "file_id": file_id,
             }
 
-            self.handle_query(query, args)
-            self.api.result_consumed(header.get('task_id'))
+            database_handler.handle_query(query, args)
+            self.api.result_consumed(task.uuid)
 
-        else:
-            raise StreamError("Unrecognised header type {}".format(header['type']))
+        return callback
 
-    @classmethod
-    def save_stream_to_file(cls, header, stream, file_location):
-        filename = cls.file_id_to_file_name(header['file_id'])
+    @staticmethod
+    def get_target_path(headers):
+        filename = AsmasterDownloadFileHandler.file_id_to_file_name(headers['file_id'])
+
         path = os.path.join(
-            file_location,
-            header['service'],
-            "{}".format(header.get('account_id', "None")),
-            str(header.get('device_id', "None")),
-            filename,
+            headers['service'],
+            str(headers.get('account_id', "None")),
+            str(headers.get('device_id', "None")),
+            filename
         )
-
-        if len(path) > 250:
-            raise StreamError("File path too long, unable to save stream.")
-
-        if not os.path.exists(os.path.dirname(path)):
-            os.makedirs(os.path.dirname(path))
-
-        if os.path.isfile(path):
-            os.remove(path)
-
-        with open(path, 'w') as f:
-            shutil.copyfileobj(stream, f)
 
         return path
 
     @staticmethod
     def file_id_to_file_name(file_id):
-        """
-        Sometimes file ids are not the file names on the device, but are instead generated
+        """Sometimes file ids are not the file names on the device, but are instead generated
         by the API. These are not guaranteed to be valid file names so need hashing.
         """
         if len(file_id) == 40 and re.match("^[a-f0-9]+$", file_id):
             return file_id
         # prefix with "re_" to avoid name collision with real fileids
         return "re_{}".format(hashlib.sha1(file_id).hexdigest())
+
+
+class AsmasterTask(Task):
+
+    def __init__(self, uuid, callback=None):
+        super(AsmasterTask, self).__init__(uuid, callback=callback)
+
+        self._resolved = True  # Only create these tasks when we receive the task results, hence already resolved.
+        self._headers = None
+
+    @property
+    def headers(self):
+        return self._headers
+
+    @headers.setter
+    def headers(self, value):
+        self._headers = value
+
+    @property
+    def result(self):
+        return self._result
+
+    @result.setter
+    def result(self, value):
+        self._result = value
+
+        start_time = self.timer
+        self.timer = time.time() - start_time

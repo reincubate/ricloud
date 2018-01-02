@@ -40,17 +40,13 @@ Options:
     --timeout=<timeout>     How long should we wait for tasks to complete, in seconds. (default: 600s or 10 minutes)
 
 """
-
-
 from __future__ import unicode_literals
 
-import logging
 import json
-import os
 from docopt import docopt
 
+from . import conf
 from .ricloud import RiCloud
-from .conf import DEFAULT_LOG, LOGGING_LEVEL, LOG_DIRECTORY
 from .asmaster_api import AsmasterApi
 from .utils import select_service, select_samples
 
@@ -102,15 +98,6 @@ def main():
 
     # Format the input arguments for the application
     application_payload = _parse_input_arguments(arguments)
-
-    if not os.path.exists( LOG_DIRECTORY ):
-        os.makedirs( LOG_DIRECTORY )
-
-    # setup the logger
-    logging.basicConfig(filename=DEFAULT_LOG,
-                        filemode='a',
-                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                        level=LOGGING_LEVEL)
 
     if application_payload['mode'] == 'interactive':
         # Main RiCloud object
