@@ -10,6 +10,9 @@ from . import utils
 from .conf import settings
 
 
+logger = logging.getLogger(__name__)
+
+
 class Api(object):
     """Primary object that pushes requests into a distinct stream thread."""
 
@@ -111,7 +114,7 @@ class Api(object):
 
     def result_consumed(self, task_id):
         """Report the result as successfully consumed."""
-        logging.debug('API Sending result consumed message.')
+        logger.debug('Sending result consumed message.')
         data = {
             'task_ids': task_id,
         }
@@ -137,15 +140,17 @@ class Api(object):
         self._consumed_tasks.append(task)
 
     def listen(self):
-        try:
-            while True:
+        while True:
+            try:
                 if self._consumed_tasks:
                     consumed_task = self._consumed_tasks.pop(0)
                     consumed_task.trigger_callback()
                 else:
                     time.sleep(0.1)
-        except KeyboardInterrupt:
-            pass
+            except KeyboardInterrupt:
+                break
+            except:  # noqa: E722 want the listener to survive.
+                logger.error('Error occurred in task result processing callback.', exc_info=True)
 
     @staticmethod
     def _parse_response(response, post_request=False):
@@ -216,6 +221,8 @@ class Task(object):
         self.trigger_callback()
 
     def trigger_callback(self):
+        logger.debug('Triggering callback for task %s', str(self.uuid))
+
         if self.callback:
             self.callback(self)
 

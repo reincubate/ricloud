@@ -13,6 +13,8 @@ from .helpers import DatabaseHandler
 from . import utils
 
 
+logger = logging.getLogger(__name__)
+
 database_handler = DatabaseHandler()
 
 
@@ -38,6 +40,7 @@ class AsmasterListener(RiCloud):
 class AsmasterHandler(RiCloudHandler):
     TYPE = ''
     TABLE = None
+    QUERY_TEMPLATE = ''
 
     def on_complete_message(self, header, stream):
         task = AsmasterTask(header.get('task_id'), callback=self.generate_callback())
@@ -50,13 +53,14 @@ class AsmasterHandler(RiCloudHandler):
 class AsmasterSystemHandler(AsmasterHandler):
     TYPE = 'system'
     TABLE = 'system'
+    QUERY_TEMPLATE = """
+        INSERT INTO {table} (`received`, `headers`, `body`, `message`, `code`)
+        VALUES (NOW(), %(headers)s, %(body)s, %(message)s, %(code)s)
+    """
 
     def generate_callback(self):
         def callback(task):
-            query = """
-                INSERT INTO {table} (`received`, `headers`, `body`, `message`, `code`)
-                VALUES (NOW(), %(headers)s, %(body)s, %(message)s, %(code)s)
-            """.format(table=self.TABLE)
+            query = self.QUERY_TEMPLATE.format(table=self.TABLE)
 
             parsed_body = json.loads(task.result)
 
@@ -73,7 +77,7 @@ class AsmasterSystemHandler(AsmasterHandler):
             database_handler.handle_query(query, args)
 
             if "error" in task.result:
-                logging.error('System error message: %s', task.result)
+                logger.error('System error message: %s', task.result)
 
         return callback
 
@@ -81,13 +85,14 @@ class AsmasterSystemHandler(AsmasterHandler):
 class AsmasterFeedHandler(AsmasterHandler):
     TYPE = 'fetch-data'
     TABLE = 'feed'
+    QUERY_TEMPLATE = """
+        INSERT INTO {table} (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `body`)
+        VALUES (%(service)s, NOW(), %(account_id)s, %(device_id)s, %(device_tag)s, %(headers)s, %(body)s)
+    """
 
     def generate_callback(self):
         def callback(task):
-            query = """
-                INSERT INTO {table} (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `body`)
-                VALUES (%(service)s, NOW(), %(account_id)s, %(device_id)s, %(device_tag)s, %(headers)s, %(body)s)
-            """.format(table=self.TABLE)
+            query = self.QUERY_TEMPLATE.format(table=self.TABLE)
 
             args = {
                 'service': task.headers['service'],
@@ -112,6 +117,14 @@ class AsmasterMessageHandler(AsmasterFeedHandler):
 class AsmasterDownloadFileHandler(AsmasterHandler):
     TYPE = 'download-file'
     TABLE = 'file'
+    QUERY_TEMPLATE = """
+        INSERT INTO {table}
+            (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `location`, `file_id`)
+        VALUES (
+            %(service)s, NOW(), %(account_id)s, %(device_id)s,
+            %(device_tag)s, %(headers)s, %(location)s, %(file_id)s
+        )
+    """
 
     def on_complete_message(self, header, stream):
         task = AsmasterTask(header.get('task_id'), callback=self.generate_callback())
@@ -132,14 +145,7 @@ class AsmasterDownloadFileHandler(AsmasterHandler):
             if len(file_id) > 4096:
                 raise StreamError("Invalid download file request, file_id is too long")
 
-            query = """
-                INSERT INTO {table}
-                    (`service`, `received`, `account_id`, `device_id`, `device_tag`, `headers`, `location`, `file_id`)
-                VALUES (
-                    %(service)s, NOW(), %(account_id)s, %(device_id)s,
-                     %(device_tag)s, %(headers)s, %(location)s, %(file_id)s
-                )
-            """.format(table=self.TABLE)
+            query = self.QUERY_TEMPLATE.format(table=self.TABLE)
 
             args = {
                 "service": task.headers['service'],

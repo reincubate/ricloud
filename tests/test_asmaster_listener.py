@@ -43,7 +43,10 @@ class TestAsmasterListener(object):
                     test.write(line.replace("ricloud", self.DB_NAME))
 
         subprocess.check_output(
-            "mysql -u {} -p{} < {}".format(conf.LISTENER_DB_USER, conf.LISTENER_DB_PASSWORD, test_schema_path),
+            "mysql -u {} -p{} -h {} -P {} < {}".format(
+                conf.LISTENER_DB_USER, conf.LISTENER_DB_PASSWORD,
+                conf.LISTENER_DB_HOST, conf.LISTENER_DB_PORT, test_schema_path
+            ),
             shell=True
         )
         os.remove(test_schema_path)

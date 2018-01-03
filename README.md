@@ -1,5 +1,9 @@
 # ricloud-py: iCloud access made easy
 
+[![pypi](https://img.shields.io/pypi/v/ricloud.svg)](https://pypi.python.org/pypi/ricloud)
+[![CircleCI](https://circleci.com/gh/reincubate/ricloud.svg?style=shield)](https://circleci.com/gh/reincubate/ricloud)
+[![docs](https://img.shields.io/badge/docs-ricloud-blue.svg)](https://docs.reincubate.com/ricloud/)
+
 This is the sample Python client for *ricloud*, Reincubate's [Cloud Data API](https://www.reincubate.com/ricloud-cloud-data-api/?utm_source=github&utm_medium=ricloud-py&utm_campaign=ricloud).
 
 > Refer to the comprehensive *ricloud* [documentation](https://docs.reincubate.com/ricloud/?utm_source=github&utm_medium=ricloud-py&utm_campaign=ricloud) for a fuller picture of the API's capabilities, specifications, and benefits. See also the [Apple iCloud service](https://docs.reincubate.com/ricloud/icloud-backups/?utm_source=github&utm_medium=ricloud-py&utm_campaign=ricloud) documentation for its rich capabilities in accessing iCloud data.

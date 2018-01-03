@@ -7,27 +7,30 @@ import traceback
 from .handlers import StreamError
 
 
+logger = logging.getLogger(__name__)
+
+
 class Listener(object):
     """Handle stream messagse here."""
     def __init__(self, handlers):
         self.handlers = handlers
 
     def on_heartbeat(self):
-        logging.debug('-*- Heartbeat -*-')
+        logger.debug('-*- Heartbeat -*-')
 
     def on_message(self, header, data):
         header = json.loads(header)
         handler = self.handlers.get(header['type'], self.handlers.get('__ALL__', None))
 
         if not handler:
-            logging.error('Unknown message type', header['type'])
-            logging.error(header)
-            logging.error(data)
+            logger.error('Unknown message type', header['type'])
+            logger.error(header)
+            logger.error(data)
         else:
             try:
                 handler.handle(header, data)
             except StreamError as e:
-                logging.error("StreamError: %s", e.message)
+                logger.error("StreamError: %s", e.message)
             except Exception as e:
-                logging.critical("%s: %s", type(e), e.args)
-                logging.critical(traceback.format_exc())
+                logger.critical("%s: %s", type(e), e.args)
+                logger.critical(traceback.format_exc())

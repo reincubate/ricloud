@@ -43,12 +43,16 @@ Options:
 from __future__ import unicode_literals
 
 import json
+import logging
 from docopt import docopt
 
-from . import conf
+from . import conf  # Load configuration explicitly.
 from .ricloud import RiCloud
 from .asmaster_api import AsmasterApi
 from .utils import select_service, select_samples
+
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_input_arguments(arguments):
@@ -100,6 +104,7 @@ def main():
     application_payload = _parse_input_arguments(arguments)
 
     if application_payload['mode'] == 'interactive':
+        logger.debug('Starting ricloud client in interactive mode.')
         # Main RiCloud object
         ricloud = RiCloud()
 
@@ -114,6 +119,7 @@ def main():
         Application.run()
 
     elif application_payload['mode'] == 'listen':
+        logger.debug('Starting ricloud client in listener mode.')
         # asmaster listener requires MySQLdb, and we want to avoid requiring that otherwise
         from .asmaster_listener import AsmasterListener
 
@@ -121,6 +127,7 @@ def main():
         AsmasterListener(application_payload['timeout'])
 
     elif application_payload['mode'] == 'manager':
+        logger.debug('Starting ricloud client manager request.')
         api = AsmasterApi(application_payload['timeout'])
         api.setup()
 

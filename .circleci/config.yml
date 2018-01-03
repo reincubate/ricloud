@@ -14,12 +14,15 @@ jobs:
       - checkout
       - run:
           name: system dependencies
-          command: sudo apt-get install -y build-essential libmysqlclient-dev libxml2-dev
+          command: sudo apt-get install -y mysql-client
       - run:
           name: test dependencies
           command: sudo pip install tox
       - run:
           name: test
           command: tox
-      - run: mv reports/htmlcov $CIRCLE_ARTIFACTS
-      - run: mv reports $CIRCLE_TEST_REPORTS/reports
+      - store_test_results:
+          path: reports
+      - store_artifacts:
+          path: reports
+          destination: reports

@@ -5,6 +5,9 @@ import tempfile
 from cStringIO import StringIO
 
 
+logger = logging.getLogger(__name__)
+
+
 class StreamError(Exception):
 
     def __init__(self, message):
@@ -24,9 +27,9 @@ class SystemHandler(HandlerBase):
     TYPE = 'system'
 
     def handle(self, header, payload):
-        logging.info('-*- System Message -*-')
-        logging.info('Header:  %s', header)
-        logging.info('Paylaod: %s', payload)
+        logger.info('-*- System Message -*-')
+        logger.info('Header:  %s', header)
+        logger.info('Paylaod: %s', payload)
 
 
 class ChunkedDataHandler(HandlerBase):
@@ -56,9 +59,9 @@ class ChunkedDataHandler(HandlerBase):
         return self.tmp_handles[id]
 
     def on_complete_message(self, header, stream):
-        logging.info('-*- message completed -*-')
-        logging.info(header)
-        logging.info(stream.read())
+        logger.info('-*- message completed -*-')
+        logger.info(header)
+        logger.info(stream.read())
 
 
 class LogInHandler(ChunkedDataHandler):

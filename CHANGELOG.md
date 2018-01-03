@@ -1,3 +1,10 @@
+**2.3.2** - *released 2018-01-03*
+
+* Improved the robustness of the new worker thread when in *asmaster* listener mode. Extra logging around errors here.
+* Extra debug logging around the *asmaster* listener to aid in issue diagnosis.
+* Complete setting up CircleCI testing.
+* Some nice badges in the README.
+
 **2.3.1** - *released 2018-01-02*
 
 * Make the *asmaster* listener similar in design to the interactive *asapi* mode by splitting out the stream consumer to a different thread.

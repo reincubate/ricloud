@@ -4,9 +4,13 @@ import MySQLdb
 from . import conf
 
 
+logger = logging.getLogger(__name__)
+
+
 class DatabaseHandler(object):
 
     def __init__(self, db_name=conf.LISTENER_DB_NAME):
+        logger.debug('Setting up DatabaseHandler for database `%s`.', db_name)
         self.db_name = db_name
 
     _db_con = None
@@ -14,6 +18,7 @@ class DatabaseHandler(object):
     @property
     def db_con(self):
         if not self._db_con:
+            logger.debug('Establishing new database connection to database `%s`.', self.db_name)
             self._db_con = MySQLdb.connect(
                 host=conf.LISTENER_DB_HOST,
                 port=int(conf.LISTENER_DB_PORT),
@@ -30,8 +35,9 @@ class DatabaseHandler(object):
             self.db_con.commit()
         except (AttributeError, MySQLdb.OperationalError):
             if not retry:
+                logger.error('Query failed, no retries remaining.', exc_info=True)
                 raise
 
-            logging.warn('asmaster listener query failed, attempting to refresh database connection.')
+            logger.warn('Query failed, attempting to refresh connection (%d retries remaining)', retry)
             self._db_con = None
             self.handle_query(query, args=args, retry=retry - 1)

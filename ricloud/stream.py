@@ -5,6 +5,9 @@ import requests
 from requests.packages import urllib3
 
 
+logger = logging.getLogger(__name__)
+
+
 class Stream(object):
     def __init__(self, host, url, listener, stream, token, protocol='https'):
         self.protocol = protocol
@@ -24,7 +27,7 @@ class Stream(object):
             try:
                 self._go(url)
             except (requests.exceptions.ConnectionError, urllib3.exceptions.ProtocolError):
-                logging.error('Connection failed unexpectedly with error.', exc_info=True)
+                logger.error('Connection failed unexpectedly with error.', exc_info=True)
 
             self._retry_wait()
 
@@ -59,12 +62,12 @@ class Stream(object):
 
                 buf.readline()  # Always have a final carriage return at the end of a message.
 
-        logging.warn('Connection closed, final message: %s', buf.read())
+        logger.warn('Connection closed, final message: %s', buf.read())
 
     def _process_initial_response(self, response):
         response.raise_for_status()
 
-        logging.debug('Stream connection established.')
+        logger.debug('Stream connection established.')
         self.streaming = True
         self.retry_count = 0
 
@@ -72,6 +75,6 @@ class Stream(object):
         self.retry_count += 1
         retry_wait = min(max((self.retry_count - 2), 0) ** 2, 60)  # Increase quadratically to a maximum of 60s.
 
-        logging.warning('Attempting reconnect number %d in %d seconds.', self.retry_count, retry_wait)
+        logger.warn('Attempting reconnect number %d in %d seconds.', self.retry_count, retry_wait)
 
         time.sleep(retry_wait)
