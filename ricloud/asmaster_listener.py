@@ -34,7 +34,18 @@ class AsmasterListener(RiCloud):
             listener=Listener(handlers_dict)
         )
 
-        self.api.listen()
+        self.listen()
+
+    def listen(self):
+        while True:
+            try:
+                self._check_stream_thread()
+
+                self.api.process_results()
+            except KeyboardInterrupt:
+                break
+            except:  # noqa: E722 want the listener to survive.
+                logger.error('Error occurred in worker thread.', exc_info=True)
 
 
 class AsmasterHandler(RiCloudHandler):
@@ -43,7 +54,7 @@ class AsmasterHandler(RiCloudHandler):
     QUERY_TEMPLATE = ''
 
     def on_complete_message(self, header, stream):
-        task = AsmasterTask(header.get('task_id'), callback=self.generate_callback())
+        task = AsmasterTask(header.get('task_id', 'system'), callback=self.generate_callback())
         task.headers = header
         task.result = stream.read()
 

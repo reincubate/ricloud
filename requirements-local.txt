@@ -8,8 +8,9 @@ pytest-cov==2.4.0
 pytest-env==0.6.2
 tox==2.3.2
 
-# Packaging
+# Release utils
 pypandoc==1.3.3
+bumpversion==0.5.3
 
 # Listener mode
 mysql-python==1.2.5

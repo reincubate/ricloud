@@ -1,3 +1,8 @@
+**2.3.3** - *released 2018-01-04*
+
+* Slight modification to component responsibilities. This gives us better oversight over the state of the stream listener thread.
+* Simplify Stream interface, add logging, and minor code improvements elsewhere.
+
 **2.3.2** - *released 2018-01-03*
 
 * Improved the robustness of the new worker thread when in *asmaster* listener mode. Extra logging around errors here.

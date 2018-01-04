@@ -9,10 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class Stream(object):
-    def __init__(self, host, url, listener, stream, token, protocol='https'):
-        self.protocol = protocol
-        self.host = host
-        self.url = url
+    def __init__(self, endpoint, listener, stream, token):
+        self.endpoint = endpoint
         self.stream = stream
         self.token = token
         self.listener = listener
@@ -21,11 +19,9 @@ class Stream(object):
         self.retry_count = 0
 
     def go(self):
-        url = '%s://%s%s' % (self.protocol, self.host, self.url)
-
         while True:
             try:
-                self._go(url)
+                self._go(self.endpoint)
             except (requests.exceptions.ConnectionError, urllib3.exceptions.ProtocolError):
                 logger.error('Connection failed unexpectedly with error.', exc_info=True)
 

@@ -3,19 +3,11 @@ import time
 
 from ricloud.conf import settings
 from ricloud.ricloud import RiCloud
-from ricloud.handlers import StreamError
-from ricloud.listener import Listener
 
 
 @pytest.fixture
 def stream_endpoints():
-    return [
-        {
-            'host': 'mock-stream-host',
-            'uri': 'mock-stream-uri',
-            'protocol': 'mock-stream-protocol'
-        }
-    ]
+    return ['mock-stream-protocol://mock-stream-hostmock-stream-uri']
 
 
 class TestAppstream(object):
@@ -41,12 +33,11 @@ class TestAppstream(object):
         ricloud_client = RiCloud()
 
         mock_Stream.assert_called_once_with(
-            host=stream_endpoints[0]['host'],
-            url=stream_endpoints[0]['uri'],
+            endpoint=stream_endpoints[0],
             listener=ricloud_client.listener,
             stream=settings.get('stream', 'stream_endpoint'),
-            token=settings.get('auth', 'token'),
-            protocol=stream_endpoints[0]['protocol'])
+            token=settings.get('auth', 'token')
+        )
         mock_Stream.return_value.go.assert_called_once_with()
         assert mock_Thread.daemon
         mock_Thread.start.assert_called_once_with()

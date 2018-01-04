@@ -1,6 +1,7 @@
 """Base module for `ricloud`."""
 from __future__ import absolute_import, unicode_literals
 
+import logging
 import threading
 from cached_property import cached_property
 
@@ -10,6 +11,9 @@ from .stream import Stream
 from .object_store import ObjectStore
 from .listener import Listener
 from .handlers import RiCloudHandler
+
+
+logger = logging.getLogger(__name__)
 
 
 class RiCloud(object):
@@ -25,25 +29,44 @@ class RiCloud(object):
         else:
             self.stream_thread.start()
 
-    @cached_property
+    _stream_thread = None
+
+    @property
     def stream_thread(self):
+        if not self._stream_thread:
+            self._stream_thread = self._start_stream_thread()
+        return self._stream_thread
+
+    def _start_stream_thread(self):
+        logger.debug('Preparing stream thread.')
         stream = settings.get('stream', 'stream_endpoint')
         token = settings.get('auth', 'token')
 
         def _start():
             s = Stream(
-                host=self.api.stream_endpoints[0]['host'],
-                url=self.api.stream_endpoints[0]['uri'],
+                endpoint=self.api.stream_endpoints[0],
                 listener=self.listener,
                 stream=stream,
-                token=token,
-                protocol=self.api.stream_endpoints[0]['protocol']
+                token=token
             )
             s.go()
 
         stream_thread = threading.Thread(target=_start)
         stream_thread.daemon = True
         return stream_thread
+
+    def _restart_stream_thread(self):
+        logger.warn('Restarting stream thread.')
+        if self._stream_thread:
+            self._stream_thread.join(timeout=0.001)
+
+        self._stream_thread = None
+        self._start_stream_thread()
+
+    def _check_stream_thread(self):
+        if not self.stream_thread.is_alive():
+            logger.warn('Stream thread failed check.')
+            self._restart_stream_thread()
 
     @cached_property
     def object_store_thread(self):

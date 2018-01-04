@@ -48,7 +48,7 @@ class Api(object):
         return "{protocol}://{host}{uri}".format(**endpoint)
 
     def _set_endpoints(self, info):
-        self.stream_endpoints = info['stream_endpoints']
+        self.stream_endpoints = [self._parse_endpoint(endpoint) for endpoint in info['stream_endpoints']]
 
         submission = info['task_submission_endpoint']
         self.submit_endpoint = self._parse_endpoint(submission)
@@ -139,18 +139,10 @@ class Api(object):
     def append_consumed_task(self, task):
         self._consumed_tasks.append(task)
 
-    def listen(self):
-        while True:
-            try:
-                if self._consumed_tasks:
-                    consumed_task = self._consumed_tasks.pop(0)
-                    consumed_task.trigger_callback()
-                else:
-                    time.sleep(0.1)
-            except KeyboardInterrupt:
-                break
-            except:  # noqa: E722 want the listener to survive.
-                logger.error('Error occurred in task result processing callback.', exc_info=True)
+    def process_results(self):
+        if self._consumed_tasks:
+            consumed_task = self._consumed_tasks.pop(0)
+            consumed_task.trigger_callback()
 
     @staticmethod
     def _parse_response(response, post_request=False):
