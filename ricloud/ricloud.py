@@ -11,6 +11,7 @@ from .stream import Stream
 from .object_store import ObjectStore
 from .listener import Listener
 from .handlers import RiCloudHandler
+from .helpers import LogHelper
 
 
 logger = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ class RiCloud(object):
         return self._stream_thread
 
     def _start_stream_thread(self):
-        logger.debug('Preparing stream thread.')
+        logger.info(LogHelper.get_message('stream_start'))
         stream = settings.get('stream', 'stream_endpoint')
         token = settings.get('auth', 'token')
 
@@ -56,16 +57,19 @@ class RiCloud(object):
         return stream_thread
 
     def _restart_stream_thread(self):
-        logger.warn('Restarting stream thread.')
+        logger.warn(LogHelper.get_message('stream_restart'))
         if self._stream_thread:
-            self._stream_thread.join(timeout=0.001)
+            try:
+                self._stream_thread.join(timeout=0.001)
+            except RuntimeError:
+                logger.warn('Error encountered closing old thread.')
 
         self._stream_thread = None
         self._start_stream_thread()
 
     def _check_stream_thread(self):
         if not self.stream_thread.is_alive():
-            logger.warn('Stream thread failed check.')
+            logger.warn(LogHelper.get_message('stream_failed_check'))
             self._restart_stream_thread()
 
     @cached_property

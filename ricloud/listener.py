@@ -5,7 +5,7 @@ import logging
 import traceback
 
 from .handlers import StreamError
-
+from .helpers import LogHelper
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class Listener(object):
         self.handlers = handlers
 
     def on_heartbeat(self):
-        logger.debug('-*- Heartbeat -*-')
+        logger.debug(LogHelper.get_message('stream_heartbeat'))
 
     def on_message(self, header, data):
         header = json.loads(header)

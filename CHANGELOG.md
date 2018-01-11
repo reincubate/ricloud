@@ -1,3 +1,8 @@
+**2.3.4** - *released 2018-01-11*
+
+* Tweaks to listener worker and stream threads. This makes them less resources hungry and more reliable.
+* Add status command for a quick overview of the latest occurrences of key messages in the log.
+
 **2.3.3** - *released 2018-01-04*
 
 * Slight modification to component responsibilities. This gives us better oversight over the state of the stream listener thread.

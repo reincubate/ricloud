@@ -1,10 +1,51 @@
 import logging
 import MySQLdb
 
+from datetime import datetime
+
 from . import conf
 
 
 logger = logging.getLogger(__name__)
+
+
+class LogHelper(object):
+
+    LOG_MESSAGES = {
+        'stream_heartbeat': '-*- Heartbeat -*-',
+        'stream_start': 'Starting ricloud listener stream thread.',
+        'stream_restart': 'Restarting ricloud listener stream thread.',
+        'stream_failed_check': 'Uptime check failed on ricloud listener stream thread.',
+        'stream_error': 'Error occurred in listener stream thread.',
+        'listener_worker_start': 'Starting ricloud listener worker thread.',
+        'listener_worker_error': 'Error occurred in listener worker thread.',
+    }
+
+    @classmethod
+    def get_message(cls, message):
+        return cls.LOG_MESSAGES.get(message)
+
+    @classmethod
+    def get_status(cls):
+        return {
+            'last_messages': dict((key, cls._get_latest_message(key)) for key in cls.LOG_MESSAGES),
+            'current_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f'),
+        }
+
+    @classmethod
+    def _get_latest_message(cls, message):
+        message_content = cls.get_message(message)
+
+        with open(conf.LOG_FILE, 'r') as log_file:
+            latest_message_line = ''
+
+            for line in log_file:
+                if message_content in line:
+                    latest_message_line = line
+
+        latest_message = latest_message_line[1:].split(': ', 1)[0]
+
+        return latest_message or 'No occurrence in log file or log level is too high.'
 
 
 class DatabaseHandler(object):

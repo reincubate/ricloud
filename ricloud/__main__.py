@@ -1,6 +1,7 @@
 """ricloud API Client.
 
 Usage:
+    ricloud status
     ricloud <account> [--password=<password>] [--timeout=<timeout>]
     ricloud --listen [--timeout=<timeout>]
     ricloud --list-services [--timeout=<timeout>]
@@ -33,6 +34,9 @@ Information:
         For logging in to and downloading data from an account using with, without registering the account with asmaster (and without the corresponding locking prevention).
         ricloud <account> [--password=<password>] [--timeout=<timeout>]
 
+    Debug mode:
+        Check the status of running listeners using the debug commands: status.
+
 
 Options:
     -h --help               Show this screen.
@@ -46,9 +50,10 @@ import json
 import logging
 from docopt import docopt
 
-from . import conf  # Load configuration explicitly.
+from . import __version__
 from .ricloud import RiCloud
 from .asmaster_api import AsmasterApi
+from .helpers import LogHelper
 from .utils import select_service, select_samples
 
 
@@ -57,6 +62,11 @@ logger = logging.getLogger(__name__)
 
 def _parse_input_arguments(arguments):
     timeout = int(arguments.get('--timeout') or 600)
+
+    if arguments['status']:
+        return {
+            'mode': 'debug',
+        }
 
     if arguments['--listen']:
         return {
@@ -98,7 +108,7 @@ def _parse_input_arguments(arguments):
 
 def main():
     # Get input arguments from command line
-    arguments = docopt(__doc__)
+    arguments = docopt(__doc__, version='ricloud v' + __version__)
 
     # Format the input arguments for the application
     application_payload = _parse_input_arguments(arguments)
@@ -156,6 +166,9 @@ def main():
             print json.dumps(api.unsubscribe_device(arguments['<account_id>'], arguments['<device_id>']), indent=2)
         if(arguments["--reset-subscription-since"]):
             print json.dumps(api.reset_subscription_since(arguments['<account_id>'], arguments['<datetime>']), indent=2)
+
+    elif application_payload['mode'] == 'debug':
+        print json.dumps(LogHelper.get_status(), indent=2, sort_keys=True)
 
 
 if __name__ == '__main__':

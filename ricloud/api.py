@@ -143,6 +143,8 @@ class Api(object):
         if self._consumed_tasks:
             consumed_task = self._consumed_tasks.pop(0)
             consumed_task.trigger_callback()
+        else:
+            time.sleep(0.01)
 
     @staticmethod
     def _parse_response(response, post_request=False):

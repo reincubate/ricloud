@@ -9,7 +9,7 @@ from .api import Api, Task
 from .ricloud import RiCloud
 from .listener import Listener
 from .handlers import RiCloudHandler, StreamError
-from .helpers import DatabaseHandler
+from .helpers import DatabaseHandler, LogHelper
 from . import utils
 
 
@@ -21,12 +21,13 @@ database_handler = DatabaseHandler()
 class AsmasterListener(RiCloud):
 
     def __init__(self, timeout, api=None):
+        logger.info(LogHelper.get_message('listener_worker_start'))
+
         self.timeout = timeout
 
         self.api = api or Api()
 
         handlers = [AsmasterSystemHandler, AsmasterFeedHandler, AsmasterMessageHandler, AsmasterDownloadFileHandler]
-
         handlers_dict = dict((handler.TYPE, handler(api=self.api)) for handler in handlers)
 
         super(AsmasterListener, self).__init__(
@@ -45,7 +46,7 @@ class AsmasterListener(RiCloud):
             except KeyboardInterrupt:
                 break
             except:  # noqa: E722 want the listener to survive.
-                logger.error('Error occurred in worker thread.', exc_info=True)
+                logger.error(LogHelper.get_message('listener_worker_error'), exc_info=True)
 
 
 class AsmasterHandler(RiCloudHandler):

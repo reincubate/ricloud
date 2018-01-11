@@ -4,6 +4,8 @@ import requests
 
 from requests.packages import urllib3
 
+from .helpers import LogHelper
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,7 @@ class Stream(object):
             try:
                 self._go(self.endpoint)
             except (requests.exceptions.ConnectionError, urllib3.exceptions.ProtocolError):
-                logger.error('Connection failed unexpectedly with error.', exc_info=True)
+                logger.error(LogHelper.get_message('stream_error'), exc_info=True)
 
             self._retry_wait()
 
