@@ -1,3 +1,7 @@
+**2.3.5** - *released 2018-01-11*
+
+* Quickfix for listener stream thread exception handling and lifetime management.
+
 **2.3.4** - *released 2018-01-11*
 
 * Tweaks to listener worker and stream threads. This makes them less resources hungry and more reliable.

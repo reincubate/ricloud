@@ -26,6 +26,9 @@ class Stream(object):
                 self._go(self.endpoint)
             except (requests.exceptions.ConnectionError, urllib3.exceptions.ProtocolError):
                 logger.error(LogHelper.get_message('stream_error'), exc_info=True)
+            except:  # noqa: E722 want to log any error that occurs properly.
+                logger.error(LogHelper.get_message('stream_error'), exc_info=True)
+                break
 
             self._retry_wait()
 

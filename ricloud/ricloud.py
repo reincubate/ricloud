@@ -23,8 +23,11 @@ class RiCloud(object):
     def __init__(self, api=None, listener=None):
         self.api = api or Api()
         self.api.setup()
+
         self.listener = listener or Listener({'__ALL__': RiCloudHandler(api=self.api)})
+
         self.services = self.api.allowed_services()
+
         if self.api.retrieval_protocol == "asstore":
             self.object_store_thread.start()
         else:
@@ -54,18 +57,13 @@ class RiCloud(object):
 
         stream_thread = threading.Thread(target=_start)
         stream_thread.daemon = True
+
         return stream_thread
 
     def _restart_stream_thread(self):
         logger.warn(LogHelper.get_message('stream_restart'))
-        if self._stream_thread:
-            try:
-                self._stream_thread.join(timeout=0.001)
-            except RuntimeError:
-                logger.warn('Error encountered closing old thread.')
-
         self._stream_thread = None
-        self._start_stream_thread()
+        self.stream_thread.start()
 
     def _check_stream_thread(self):
         if not self.stream_thread.is_alive():
