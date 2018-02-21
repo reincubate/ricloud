@@ -1,5 +1,10 @@
+import time
 import logging
+import tempfile
+
 import MySQLdb
+
+from collections import OrderedDict
 
 from datetime import datetime
 
@@ -82,3 +87,50 @@ class DatabaseHandler(object):
             logger.warn('Query failed, attempting to refresh connection (%d retries remaining)', retry)
             self._db_con = None
             self.handle_query(query, args=args, retry=retry - 1)
+
+
+class TemporaryFileHandler(object):
+    TIMEOUT = conf.TEMPFILE_TIMEOUT
+    CHECK_INTERVAL = conf.TEMPFILE_TIMEOUT_CHECK_INTERVAL
+
+    def __init__(self):
+        self.handles = OrderedDict()
+
+        self._last_check = time.time()
+
+    def get(self, handle_id):
+        if handle_id not in self.handles:
+            self.handles[handle_id] = {
+                'handle': tempfile.NamedTemporaryFile(),
+                'timestamp': time.time(),
+            }
+        return self.handles[handle_id]['handle']
+
+    def delete(self, handle_id):
+        del self.handles[handle_id]  # Delete the reference but don't close here.
+
+    def check_expiries(self):
+        time_now = time.time()
+
+        if (self._last_check + self.CHECK_INTERVAL) > time_now:
+            return
+
+        logger.info('Checking temporary file expiries.')
+
+        self._last_check = time_now
+
+        to_delete = []
+        for handle_id, handle in self.handles.iteritems():  # These are ordered by time of insertion.
+            if self._is_expired(handle['timestamp']):
+                to_delete.append(handle_id)
+            else:
+                break  # Iterate until the first handle that is not expired.
+
+        logger.info('Found %d expired files to remove.', len(to_delete))
+
+        for handle_id in to_delete:
+            self.handles[handle_id]['handle'].close()  # Nothing should be expecting this, so close it.
+            del self.handles[handle_id]
+
+    def _is_expired(self, timestamp):
+        return (timestamp + self.TIMEOUT) < time.time()
