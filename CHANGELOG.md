@@ -1,3 +1,8 @@
+**2.3.6** - *released 2018-02-21*
+
+* Add dedicated handler for temporary files.
+* Fix bug where the client in listener mode would hold onto partially complete files forever in case of connection issues. This could lead to the client using a large amount of disk space for corrupted files.
+
 **2.3.5** - *released 2018-01-11*
 
 * Quickfix for listener stream thread exception handling and lifetime management.

@@ -42,6 +42,8 @@ class AsmasterListener(RiCloud):
             try:
                 self._check_stream_thread()
 
+                RiCloudHandler.temporary_files.check_expiries()
+
                 self.api.process_results()
             except KeyboardInterrupt:
                 break

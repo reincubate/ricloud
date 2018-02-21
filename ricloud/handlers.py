@@ -1,8 +1,9 @@
 import os
 import logging
-import tempfile
 
 from cStringIO import StringIO
+
+from .helpers import TemporaryFileHandler
 
 
 logger = logging.getLogger(__name__)
@@ -34,29 +35,23 @@ class SystemHandler(HandlerBase):
 
 class ChunkedDataHandler(HandlerBase):
     """Messages can come in chunks, piece them together here."""
-    tmp_handles = {}
+    temporary_files = TemporaryFileHandler()
 
     def handle(self, header, payload):
         if header.get('total_chunks', 1) > 1:
-            # Open our tmp file and write to the location
-            stream = self._get_stream(header['task_id'])
-            stream.seek(header['chunk_size'] * (header['chunk'] - 1))
+            stream = self.temporary_files.get(header['task_id'])  # Get a tmp handle.
+            stream.seek(header['chunk_size'] * (header['chunk'] - 1))  # Write to chunk's position.
             stream.write(payload)
-            if header['chunk'] == header['total_chunks']:
-                # Message should be complete
+
+            if header['chunk'] == header['total_chunks']:  # Message should be complete.
                 stream.seek(0)
                 self.on_complete_message(header, stream)
                 stream.close()
-                # Remove the stream handle
-                del self.tmp_handles[header['task_id']]
+
+                self.temporary_files.delete(header['task_id'])  # Remove the stream handle.
 
         else:
             self.on_complete_message(header, StringIO(payload))
-
-    def _get_stream(self, id):
-        if id not in self.tmp_handles:
-            self.tmp_handles[id] = tempfile.TemporaryFile()
-        return self.tmp_handles[id]
 
     def on_complete_message(self, header, stream):
         logger.info('-*- message completed -*-')

@@ -55,13 +55,14 @@ class Stream(object):
                 self.listener.on_heartbeat()
             elif line.isdigit():
                 length = int(line)
-                header = buf.read(length)
+                header = buf.read(length).strip()  # Header is always json formatted, safe to strip.
+
                 length = int(buf.readline().strip())
-                body = buf.read(length - 2)
+                body = buf.read(length - 2)  # Read body until the `\r\n` end marker.
 
                 self.listener.on_message(header, body)
 
-                buf.readline()  # Always have a final carriage return at the end of a message.
+                buf.read(2)  # Discard the `\r\n` end marker here
 
         logger.warn('Connection closed, final message: %s', buf.read())
 
