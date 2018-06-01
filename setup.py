@@ -1,5 +1,4 @@
 from setuptools import setup
-from pip.req import parse_requirements
 
 from ricloud import __version__
 
@@ -16,8 +15,8 @@ def markdown2rst(path):
 
 
 def extract_requirements(path):
-    requirements = parse_requirements(path, session=False)
-    return [str(dep.req) for dep in requirements]
+    with open(path) as fp:
+        return [x.strip() for x in fp.read().split('\n') if not x.startswith('#')]
 
 
 setup(
