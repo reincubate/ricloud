@@ -23,7 +23,7 @@ class Listener(object):
         handler = self.handlers.get(header['type'], self.handlers.get('__ALL__', None))
 
         if not handler:
-            logger.error('Unknown message type', header['type'])
+            logger.error('Unknown message type %s', header['type'])
             logger.error(header)
             logger.error(data)
         else:
