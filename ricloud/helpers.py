@@ -2,8 +2,6 @@ import time
 import logging
 import tempfile
 
-import MySQLdb
-
 from collections import OrderedDict
 
 from datetime import datetime
@@ -51,42 +49,6 @@ class LogHelper(object):
         latest_message = latest_message_line[1:].split(': ', 1)[0]
 
         return latest_message or 'No occurrence in log file or log level is too high.'
-
-
-class DatabaseHandler(object):
-
-    def __init__(self, db_name=conf.LISTENER_DB_NAME):
-        logger.debug('Setting up DatabaseHandler for database `%s`.', db_name)
-        self.db_name = db_name
-
-    _db_con = None
-
-    @property
-    def db_con(self):
-        if not self._db_con:
-            logger.debug('Establishing new database connection to database `%s`.', self.db_name)
-            self._db_con = MySQLdb.connect(
-                host=conf.LISTENER_DB_HOST,
-                port=int(conf.LISTENER_DB_PORT),
-                user=conf.LISTENER_DB_USER,
-                passwd=conf.LISTENER_DB_PASSWORD,
-                db=self.db_name
-            )
-        return self._db_con
-
-    def handle_query(self, query, args=None, retry=2):
-        try:
-            cursor = self.db_con.cursor()
-            cursor.execute(query, args=args)
-            self.db_con.commit()
-        except (AttributeError, MySQLdb.OperationalError):
-            if not retry:
-                logger.error('Query failed, no retries remaining.', exc_info=True)
-                raise
-
-            logger.warn('Query failed, attempting to refresh connection (%d retries remaining)', retry)
-            self._db_con = None
-            self.handle_query(query, args=args, retry=retry - 1)
 
 
 class TemporaryFileHandler(object):

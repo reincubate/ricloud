@@ -9,7 +9,8 @@ from .api import Api, Task
 from .ricloud import RiCloud
 from .listener import Listener
 from .handlers import RiCloudHandler, StreamError
-from .helpers import DatabaseHandler, LogHelper
+from .database_handlers import DatabaseHandler
+from .helpers import LogHelper
 from . import utils
 
 
