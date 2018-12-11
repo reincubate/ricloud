@@ -1,3 +1,17 @@
+**2.3.9** - *released 2018-12-11*
+
+* Improve *asmaster* listener to allow simpler configuration of custom result handlers.
+
+**2.3.8** - *released 2018-11-01*
+
+* Update version of requests in requirements due to vulnerability discovery.
+* Decouple database handler from core code to make requirement of MySQL dependencies optional.
+* Minor fixes and code cleanup.
+
+**2.3.7** - *released 2018-06-01*
+
+* Fix use of non-public pip utility.
+
 **2.3.6** - *released 2018-02-21*
 
 * Add dedicated handler for temporary files.

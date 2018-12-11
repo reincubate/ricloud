@@ -21,19 +21,28 @@ database_handler = DatabaseHandler()
 
 class AsmasterListener(RiCloud):
 
-    def __init__(self, timeout, api=None):
+    def __init__(self, timeout, api=None, listener=None, handlers=None):
+        """Listener for receiving results from the asmaster mechanism."""
         logger.info(LogHelper.get_message('listener_worker_start'))
 
         self.timeout = timeout
 
         self.api = api or Api()
 
-        handlers = [AsmasterSystemHandler, AsmasterFeedHandler, AsmasterMessageHandler, AsmasterDownloadFileHandler]
-        handlers_dict = dict((handler.TYPE, handler(api=self.api)) for handler in handlers)
+        handlers = handlers or [
+            AsmasterSystemHandler,
+            AsmasterFeedHandler,
+            AsmasterMessageHandler,
+            AsmasterDownloadFileHandler
+        ]
+
+        handlers_dict = dict(
+            (handler.TYPE, handler(api=self.api)) for handler in handlers
+        )
 
         super(AsmasterListener, self).__init__(
             api=self.api,
-            listener=Listener(handlers_dict)
+            listener=listener or Listener(handlers_dict),
         )
 
         self.listen()
