@@ -1,11 +1,10 @@
 init:
-	pip install -r requirements.txt
+	pip install -e .
 
-init-dev:
-	pip install -r requirements-local.txt
-
-test:
+clean:
 	find . -name '*.pyc' -delete
-	py.test tests
 
-.PHONY: init test
+test: clean
+	pytest tests/
+
+.PHONY: init clean test

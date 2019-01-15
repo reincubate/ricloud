@@ -1,6 +1,5 @@
 # Include the readme file
 include README.md
-include requirements.txt
 
 # Include all code files
 recursive-include ricloud *

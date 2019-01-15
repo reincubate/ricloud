@@ -1,20 +1,19 @@
 version: 2
 
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test-3.6
+      - test-2.7
+
 jobs:
-  build:
+  test-3.6: &test-template
     docker:
-      - image: circleci/python:2.7
-      - image: circleci/mysql:5.7
-        environment:
-          - MYSQL_ROOT_HOST=%
-          - MYSQL_DATABASE=ricloud_test
-          - MYSQL_USER=localdev
-          - MYSQL_PASSWORD=localdev
+      - image: circleci/python:3.6
+
     steps:
       - checkout
-      - run:
-          name: system dependencies
-          command: sudo apt-get install -y mysql-client
       - run:
           name: test dependencies
           command: sudo pip install tox
@@ -26,3 +25,8 @@ jobs:
       - store_artifacts:
           path: reports
           destination: reports
+
+  test-2.7:
+    <<: *test-template
+    docker:
+      - image: circleci/python:2.7

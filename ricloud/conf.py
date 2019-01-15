@@ -1,19 +1,23 @@
+from __future__ import absolute_import
+
 import os
-import logging
-import ConfigParser
+
+from ricloud.compat import RawConfigParser
 
 
-def get_config(config_name='ricloud.ini'):
-    config = ConfigParser.RawConfigParser()
+def get_config(config_name="ricloud.ini"):
+    config = RawConfigParser()
 
-    path_to_config = os.path.join(os.path.dirname(__file__), config_name)  # Read defaults.
+    # Read defaults.
+    default_conf = os.path.join(os.path.dirname(__file__), config_name)
 
-    home_path = os.path.expanduser(os.path.join('~', '.%s' % config_name))  # Read user config.
+    # Read user config. We look for these in the user's root directory.
+    user_root_conf = os.path.expanduser(os.path.join("~", ".%s" % config_name))
 
-    paths = [path_to_config, home_path]
+    paths = [default_conf, user_root_conf]
 
-    if 'RICLOUD_CONF' in os.environ:
-        paths.append(os.environ['RICLOUD_CONF'])
+    if "RICLOUD_CONF" in os.environ:
+        paths.append(os.environ["RICLOUD_CONF"])
 
     config.read(paths)
 
@@ -22,29 +26,30 @@ def get_config(config_name='ricloud.ini'):
 
 settings = get_config()
 
-BASE_DIR = os.getcwd()
 
-OUTPUT_DIR = os.path.join(BASE_DIR, settings.get('output', 'output_directory'))
+def get(setting_section, setting_name):
+    """Retrieves configuration from either the local env or conf files."""
+    env_name = "RICLOUD_{}".format(setting_name.upper())
 
-LOG_DIRECTORY = os.path.join(BASE_DIR, settings.get('logging', 'logs_directory'))
-LOG_FILE = os.path.join(LOG_DIRECTORY, 'ricloud.log')
-LOG_LEVEL = settings.get('logging', 'level')
+    if env_name in os.environ:
+        return os.environ.get(env_name)
 
-if not os.path.exists(LOG_DIRECTORY):
-    os.makedirs(LOG_DIRECTORY)
+    return settings.get(setting_section, setting_name)
 
-logging.basicConfig(
-    filename=LOG_FILE,
-    filemode='a',
-    format='[%(asctime)s: %(levelname)s/%(processName)s/%(thread)d] [%(name)s:%(lineno)s] %(message)s',
-    level=LOG_LEVEL
-)
 
-LISTENER_DB_HOST = settings.get('mysql', 'host')
-LISTENER_DB_PORT = settings.get('mysql', 'port')
-LISTENER_DB_NAME = settings.get('mysql', 'database')
-LISTENER_DB_USER = settings.get('mysql', 'username')
-LISTENER_DB_PASSWORD = settings.get('mysql', 'password')
+def getint(setting_section, setting_name):
+    setting = get(setting_section, setting_name)
 
-TEMPFILE_TIMEOUT = settings.getint('tempfiles', 'timeout')
-TEMPFILE_TIMEOUT_CHECK_INTERVAL = settings.getint('tempfiles', 'timeout_check_interval')
+    try:
+        return int(setting)
+    except ValueError:
+        return 0
+
+
+def getboolean(setting_section, setting_name):
+    setting = get(setting_section, setting_name)
+
+    if not setting:
+        return None
+
+    return setting.lower() == "true"

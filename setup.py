@@ -1,8 +1,30 @@
-from setuptools import setup
+import sys
 
-from ricloud import __version__
+from setuptools import setup
+from setuptools.command.test import test as TestCommand
+
 
 PACKAGE_NAME = 'ricloud'
+
+
+class PyTest(TestCommand):
+    """Allows for testing through setuptools. From the pytest docs:
+    https://docs.pytest.org/en/latest/goodpractices.html#manual-integration
+    """
+    user_options = [("pytest-args=", "a", "Arguments to pass to pytest")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = '-n auto'
+
+    def run_tests(self):
+        import shlex
+
+        # import here, cause outside the eggs aren't loaded
+        import pytest
+
+        errno = pytest.main(shlex.split(self.pytest_args))
+        sys.exit(errno)
 
 
 def markdown2rst(path):
@@ -14,15 +36,10 @@ def markdown2rst(path):
             return f.read()
 
 
-def extract_requirements(path):
-    with open(path) as fp:
-        return [x.strip() for x in fp.read().split('\n') if not x.startswith('#')]
-
-
 setup(
     name=PACKAGE_NAME,
 
-    version=__version__,
+    version='3.0.0rc0',
 
     description="Python client for Reincubate's ricloud API.",
     long_description=markdown2rst('README.md'),
@@ -34,19 +51,47 @@ setup(
 
     license='AGPLv3',
 
-    packages=[PACKAGE_NAME, ],
+    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+    install_requires=[
+        'requests>=2.0; python_version>="3.0"',
+        'requests[security]>=2; python_version<"3.0"',
+        'click<8.0',
+    ],
+    tests_require=[
+        'pytest>=3.4',
+        'pytest-mock>=1.7',
+        'pytest-xdist>=1.22',
+        'pytest-cov>=2.5',
+        'pytest-env>=0.6.2',
+    ],
+    extras_require={
+        'gs': ['google-cloud-storage>=1.13.2,<2'],
+        's3': ['boto3>=1.9.79,<2'],
+    },
+
+    cmdclass={'test': PyTest},
+    entry_points='''
+        [console_scripts]
+        ricloud=ricloud.cli:cli
+    ''',
+
+    packages=[PACKAGE_NAME],
     package_data={PACKAGE_NAME: [PACKAGE_NAME + '/*']},
     include_package_data=True,
+    zip_safe=False,
 
-    classifiers=['Development Status :: 5 - Production/Stable',
-                 'Environment :: Console',
-                 'Intended Audience :: Developers',
-                 'License :: OSI Approved :: GNU General Public License (GPL)',
-                 'Natural Language :: English',
-                 'Operating System :: OS Independent',
-                 'Programming Language :: Python :: 2.6',
-                 'Programming Language :: Python :: 2.7',
-                 'Topic :: Utilities'],
-
-    install_requires=extract_requirements('requirements.txt'),
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Topic :: Utilities'
+    ],
 )
