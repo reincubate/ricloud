@@ -1,3 +1,10 @@
+**2.3.10** - *released 2019-03-14*
+
+* Use sessions to improve connection efficiency in API calls.
+* Clear critical path in asmaster file handler. This helps the listener thread consume the stream faster by a few orders of magnitude.
+* Minor logging of pending result handling added.
+* Some extra profiling for asmaster handlers.
+
 **2.3.9** - *released 2018-12-11*
 
 * Improve *asmaster* listener to allow simpler configuration of custom result handlers.

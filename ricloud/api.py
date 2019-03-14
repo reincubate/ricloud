@@ -28,6 +28,8 @@ class Api(object):
         self._pending_tasks = {}
         self.services = {}
 
+        self.session = requests.Session()
+
     @property
     def pending_tasks(self):
         return self._pending_tasks
@@ -165,24 +167,22 @@ class Api(object):
 
         return data
 
-    @staticmethod
-    def _perform_get_request(url, headers=None):
-        response = requests.get(
+    def _perform_get_request(self, url, headers=None):
+        response = self.session.get(
             url,
             headers=headers
         )
 
-        return Api._parse_response(response)
+        return self._parse_response(response)
 
-    @staticmethod
-    def _perform_post_request(url, data, headers=None):
-        response = requests.post(
+    def _perform_post_request(self, url, data, headers=None):
+        response = self.session.post(
             url,
             data=data,
             headers=headers
         )
 
-        return Api._parse_response(response, post_request=True)
+        return self._parse_response(response, post_request=True)
 
 
 class Task(object):

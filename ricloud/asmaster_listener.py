@@ -66,6 +66,7 @@ class AsmasterHandler(RiCloudHandler):
     TABLE = None
     QUERY_TEMPLATE = ''
 
+    @utils.profile('asmaster handler took', to_log=True)
     def on_complete_message(self, header, stream):
         task = AsmasterTask(header.get('task_id', 'system'), callback=self.generate_callback())
         task.headers = header
@@ -83,6 +84,8 @@ class AsmasterSystemHandler(AsmasterHandler):
     """
 
     def generate_callback(self):
+
+        @utils.profile('system callback took', to_log=True)
         def callback(task):
             query = self.QUERY_TEMPLATE.format(table=self.TABLE)
 
@@ -115,6 +118,8 @@ class AsmasterFeedHandler(AsmasterHandler):
     """
 
     def generate_callback(self):
+
+        @utils.profile('feed callback took', to_log=True)
         def callback(task):
             query = self.QUERY_TEMPLATE.format(table=self.TABLE)
 
@@ -150,20 +155,28 @@ class AsmasterDownloadFileHandler(AsmasterHandler):
         )
     """
 
+    @utils.profile('file handler took', to_log=True)
     def on_complete_message(self, header, stream):
-        task = AsmasterTask(header.get('task_id'), callback=self.generate_callback())
+        task = AsmasterTask(header.get('task_id', 'system'), callback=self.generate_callback())
         task.headers = header
-
-        target_path = self.get_target_path(task.headers)
-
-        file_path = utils.save_file_stream_to_target_path(stream, target_path)
-
-        task.result = file_path
+        task.result = stream
 
         self.api.append_consumed_task(task)
 
+        # Tell the `handle` function not to close the stream file.
+        return True
+
     def generate_callback(self):
+
+        @utils.profile('file callback took', to_log=True)
         def callback(task):
+            target_path = self.get_target_path(task.headers)
+
+            file_path = utils.save_file_stream_to_target_path(task.result, target_path)
+
+            # Close the temp file here as we did not let `handle` do so above.
+            task.result.close()
+
             file_id = task.headers['file_id']
 
             if len(file_id) > 4096:
@@ -177,7 +190,7 @@ class AsmasterDownloadFileHandler(AsmasterHandler):
                 "device_id": task.headers.get('device_id', None),
                 "device_tag": task.headers.get('device_tag', None),
                 "headers": json.dumps(task.headers),
-                "location": task.result,
+                "location": file_path,
                 "file_id": file_id,
             }
 

@@ -45,8 +45,12 @@ class ChunkedDataHandler(HandlerBase):
 
             if header['chunk'] == header['total_chunks']:  # Message should be complete.
                 stream.seek(0)
-                self.on_complete_message(header, stream)
-                stream.close()
+
+                keep_stream = self.on_complete_message(header, stream)
+
+                # The handler's `on_complete_message` has taken responsibility for closing the stream.
+                if not keep_stream:
+                    stream.close()
 
                 self.temporary_files.delete(header['task_id'])  # Remove the stream handle.
 

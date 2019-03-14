@@ -60,6 +60,9 @@ class TemporaryFileHandler(object):
 
         self._last_check = time.time()
 
+    def __len__(self):
+        return len(self.handles)
+
     def get(self, handle_id):
         if handle_id not in self.handles:
             self.handles[handle_id] = {
@@ -77,7 +80,13 @@ class TemporaryFileHandler(object):
         if (self._last_check + self.CHECK_INTERVAL) > time_now:
             return
 
-        logger.info('Checking temporary file expiries.')
+        if self.handles:
+            open_handles = [
+                handle_id for handle_id, handle in self.handles.iteritems()
+                if not handle['handle'].closed
+            ]
+
+            logger.info('Open temp file IDs: %s', ', '.join(open_handles))
 
         self._last_check = time_now
 
@@ -88,10 +97,12 @@ class TemporaryFileHandler(object):
             else:
                 break  # Iterate until the first handle that is not expired.
 
-        logger.info('Found %d expired files to remove.', len(to_delete))
+        if to_delete:
+            logger.info('Found %d expired files to remove.', len(to_delete))
 
         for handle_id in to_delete:
-            self.handles[handle_id]['handle'].close()  # Nothing should be expecting this, so close it.
+            if not self.handles[handle_id]['handle'].closed:
+                self.handles[handle_id]['handle'].close()  # Nothing should be expecting this, so close it.
             del self.handles[handle_id]
 
     def _is_expired(self, timestamp):

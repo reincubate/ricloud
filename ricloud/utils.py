@@ -5,6 +5,7 @@ import sys
 import time
 import json
 import shutil
+import logging
 import requests
 from multiprocessing.pool import ThreadPool
 
@@ -12,6 +13,9 @@ from clint.textui import prompt, puts, colored, indent
 
 from .conf import settings, OUTPUT_DIR
 from .samples import get_samples
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_or_create_filepath(filename, directory=''):
@@ -161,7 +165,7 @@ def select_samples(response, service_name, payload):
     return selected_sample(response, payload)
 
 
-def profile(timer_text=''):
+def profile(timer_text='', to_log=False):
     def inner(func):
         def wraps(*args, **kwargs):
             timer_start = time.time()
@@ -169,8 +173,14 @@ def profile(timer_text=''):
             timer_end = time.time()
             if settings.getboolean('logging', 'time_profile'):
                 delta = timer_end - timer_start
-                message = "{text} {delta:.2f}s".format(text=timer_text, delta=delta)
-                puts(colored.magenta(message))
+
+                if to_log:
+                    message = "{text} {delta:.9f}s".format(text=timer_text, delta=delta)
+                    logger.debug(message)
+                else:
+                    message = "{text} {delta:.2f}s".format(text=timer_text, delta=delta)
+                    puts(colored.magenta(message))
+
             return ret
         return wraps
     return inner
