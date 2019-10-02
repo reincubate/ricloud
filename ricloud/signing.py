@@ -61,7 +61,7 @@ class Signature:
         try:
             timestamp, signature = header.split(",", 1)
 
-            timestamp = timestamp[2:]
+            timestamp = int(timestamp[2:])
             signature = signature[2:]
 
             signature = decode_b64(compat.want_bytes(signature))
@@ -93,4 +93,4 @@ class Signature:
 
     @staticmethod
     def _get_payload(data, timestamp):
-        return ".".join([timestamp, compat.want_text(data)])
+        return ".".join([compat.want_text(str(timestamp)), compat.want_text(data)])

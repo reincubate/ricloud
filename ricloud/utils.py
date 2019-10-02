@@ -18,7 +18,7 @@ from ricloud import compat
 from ricloud import conf
 
 
-logger = logging.getLogger('ricloud')
+logger = logging.getLogger("ricloud")
 log_level = logging.getLevelName(conf.get("logging", "log_level"))
 logger.setLevel(log_level)
 

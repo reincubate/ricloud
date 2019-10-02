@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-__version__ = "3.0.0rc0"
+__version__ = "3.0.0rc1"
 
 from ricloud import conf
 

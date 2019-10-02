@@ -5,14 +5,17 @@ import os
 from ricloud.compat import RawConfigParser
 
 
-def get_config(config_name="ricloud.ini"):
+DEFAULT_CONF_NAME = "ricloud.ini"
+
+
+def get_config(config_name=DEFAULT_CONF_NAME):
     config = RawConfigParser()
 
     # Read defaults.
     default_conf = os.path.join(os.path.dirname(__file__), config_name)
 
     # Read user config. We look for these in the user's root directory.
-    user_root_conf = os.path.expanduser(os.path.join("~", ".%s" % config_name))
+    user_root_conf = get_user_root_config_path(config_name)
 
     paths = [default_conf, user_root_conf]
 
@@ -22,6 +25,10 @@ def get_config(config_name="ricloud.ini"):
     config.read(paths)
 
     return config
+
+
+def get_user_root_config_path(config_name=DEFAULT_CONF_NAME):
+    return os.path.expanduser(os.path.join("~", ".%s" % config_name))
 
 
 settings = get_config()

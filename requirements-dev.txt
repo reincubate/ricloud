@@ -1,0 +1,5 @@
+# Code formatting
+black
+
+# Releasing
+bumpversion

@@ -1,3 +1,10 @@
+**3.0.0rc1** - *released 2019-10-02*
+
+* Added support for interacting with subscription resources.
+* New *rirelay* service samples.
+* New helpers commands for local configuration initialisation.
+* New helpers for setting up a local event notification receiver using flask and a tool such as ngrok.
+
 **3.0.0rc0** - *released 2019-01-15*
 
 * Initial release of *ricloud-py* for the ricloud v3 API. This implementation is not compatible with older versions of the API. See the API docs for more information on new features in the ricloud v3 API.

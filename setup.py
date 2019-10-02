@@ -39,7 +39,7 @@ def markdown2rst(path):
 setup(
     name=PACKAGE_NAME,
 
-    version='3.0.0rc0',
+    version='3.0.0rc1',
 
     description="Python client for Reincubate's ricloud API.",
     long_description=markdown2rst('README.md'),
@@ -59,6 +59,7 @@ setup(
     ],
     tests_require=[
         'pytest>=3.4',
+        'pytest>=3.5,<5; python_version<"3.0"',
         'pytest-mock>=1.7',
         'pytest-xdist>=1.22',
         'pytest-cov>=2.5',
@@ -67,6 +68,7 @@ setup(
     extras_require={
         'gs': ['google-cloud-storage>=1.13.2,<2'],
         's3': ['boto3>=1.9.79,<2'],
+        'event': ['flask>=1.1.1,<2'],
     },
 
     cmdclass={'test': PyTest},

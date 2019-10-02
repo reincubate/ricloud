@@ -13,7 +13,7 @@ This is the Python client for *ricloud*, Reincubate's [Cloud Data API](https://r
 The library can be installed with a single command:
 
 ```bash
-$ pip install ricloud==3.0.0rc0
+$ pip install ricloud==3.0.0rc1
 ```
 
 Note the version is specified explicitly above, that is because this version is currently in beta.

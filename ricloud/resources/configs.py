@@ -2,14 +2,17 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 
-from ricloud.utils import decode_json, transform_csv_file_to_json, get_path_extension
+from ricloud.utils import transform_csv_file_to_json, get_path_extension
 
 from . import abase
 from .tasks import Task
 
 
 class ABConfigResource(
-    abase.CreatableResource, abase.ListableResource, abase.UpdatableResource
+    abase.CreatableResource,
+    abase.ListableResource,
+    abase.UpdatableResource,
+    abase.DeletableResource,
 ):
     @classmethod
     def test_with_id(cls, id):

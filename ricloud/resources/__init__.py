@@ -4,6 +4,7 @@ from .users import User
 from .sources import Source
 from .sessions import Session
 from .polls import Poll
+from .subscriptions import Subscription
 from .tasks import Task
 from .results import Result
 from .events import Event

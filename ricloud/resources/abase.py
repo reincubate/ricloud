@@ -66,8 +66,8 @@ class Resource(ABResource):
     RESOURCE_PATH = ""
 
     @classmethod
-    def resource_url(cls):
-        resource_path = cls.RESOURCE_PATH
+    def resource_url(cls, resource_path=None):
+        resource_path = resource_path or cls.RESOURCE_PATH
         return join_url(ricloud.url, resource_path)
 
     @property

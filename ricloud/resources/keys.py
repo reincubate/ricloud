@@ -8,6 +8,11 @@ class Key(abase.CreatableResource, abase.ListableResource, abase.UpdatableResour
     RESOURCE_PATH = "keys"
 
     @classmethod
+    def current(cls):
+        response, _ = cls.request_handler.get(cls.resource_url("key"))
+        return cls(attrs=response)
+
+    @classmethod
     def rotate_with_id(cls, id, **data):
         resource = cls(id=id)
         resource.rotate(**data)
