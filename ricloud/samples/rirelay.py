@@ -45,7 +45,13 @@ def rirelay():
     pass
 
 
-@rirelay.command(name="session create")
+@rirelay.group(name="session")
+def rirelay_session():
+    """Commands to interact with rirelay sessions."""
+    pass
+
+
+@rirelay_session.command(name="create")
 @click.argument("rirelay_pairing_code")
 @click.option(
     "--user-identifier",
@@ -60,7 +66,7 @@ def cmd_session_create(rirelay_pairing_code, user_identifier=None):
     info(str(session))
 
 
-@rirelay.command(name="session retrieve")
+@rirelay_session.command(name="retrieve")
 @click.argument("session_id")
 def cmd_session_retrieve(session_id):
     session = helpers.retrieve_session(session_id)
@@ -68,7 +74,13 @@ def cmd_session_retrieve(session_id):
     info(str(session))
 
 
-@rirelay.command(name="sub create")
+@rirelay.group(name="sub")
+def rirelay_sub():
+    """Commands to interact with rirelay subscriptions."""
+    pass
+
+
+@rirelay_sub.command(name="create")
 @click.argument("session_id")
 @click.argument("source_id")
 @click.option("--info-types", type=str, help="The info types to be polled.")
@@ -86,7 +98,7 @@ def cmd_sub_create(session_id, source_id, info_types, data_types, files):
     info(str(sub))
 
 
-@rirelay.command(name="sub retrieve")
+@rirelay_sub.command(name="retrieve")
 @click.argument("subscription_id")
 def cmd_sub_retrieve(subscription_id):
     sub = ricloud.Subscription.retrieve(id=subscription_id)
@@ -94,7 +106,7 @@ def cmd_sub_retrieve(subscription_id):
     info(str(sub))
 
 
-@rirelay.command(name="sub poll")
+@rirelay_sub.command(name="poll")
 @click.argument("subscription_id")
 @click.option("--info-types", type=str, help="The info types to be polled.")
 @click.option("--data-types", type=str, help="The data types to be polled.")

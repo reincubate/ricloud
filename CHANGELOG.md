@@ -1,3 +1,7 @@
+**3.0.0rc2** - *released 2019-10-02*
+
+* Quickfix for sample commands.
+
 **3.0.0rc1** - *released 2019-10-02*
 
 * Added support for interacting with subscription resources.
