@@ -15,6 +15,8 @@ if PY3:
     def want_text(data):
         return data.decode("utf-8") if isinstance(data, bytes) else data
 
+    def to_str(data):
+        return str(data)
 
 else:
     from collections import MutableMapping, MutableSequence
@@ -27,3 +29,6 @@ else:
 
     def want_text(data):
         return data.decode("utf-8") if isinstance(data, str) else data
+
+    def to_str(data):
+        return unicode(data)

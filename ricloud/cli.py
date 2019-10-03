@@ -54,8 +54,8 @@ def view():
     settings = conf.settings
     for section in settings.sections():
         click.echo("[{}]".format(section))
-        for setting in settings[section]:
-            click.echo("{}: {}".format(setting, conf.get(section, setting)))
+        for name, value in settings.items(section):
+            click.echo("{}: {}".format(name, value))
         click.echo()  # Separate sections by newline.
 
 

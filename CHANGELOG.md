@@ -1,3 +1,9 @@
+**3.0.0rc3** - *released 2019-10-03*
+
+* Fix for config viewing cli command.
+* Added helper command to retrieve latest *rirelay* subscription poll.
+* Fix encoding handling when outputting resource JSON to console.
+
 **3.0.0rc2** - *released 2019-10-02*
 
 * Quickfix for sample commands.

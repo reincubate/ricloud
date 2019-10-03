@@ -56,7 +56,7 @@ def _encode(data):
     elif isinstance(data, datetime.timedelta):
         return data.total_seconds()
     elif isinstance(data, (decimal.Decimal, uuid.UUID)):
-        return str(data)
+        return compat.to_str(data)
     elif isinstance(data, ricloud.resources.abase.ABResource):
         return data.id
 

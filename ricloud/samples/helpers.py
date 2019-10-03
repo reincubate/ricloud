@@ -22,7 +22,7 @@ def get_or_create_user(user_identifier):
 
 
 def retrieve_session(session_id):
-    info("Retrieving session {}...".format(session_id))
+    info("Retrieving session {} ...".format(session_id))
 
     session = ricloud.Session.retrieve(session_id)
 
@@ -71,7 +71,7 @@ def build_poll_payload(info_types, data_types, files):
 
 
 def await_poll(poll):
-    info("Awaiting poll completion...")
+    info("Awaiting completion of poll {} ...".format(poll.id))
 
     await_response(poll)
 

@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import click
 
 import ricloud
+from ricloud import compat
 
 from . import helpers
 from .utils import success, info, warn, await_response
@@ -63,7 +64,7 @@ def cmd_session_create(rirelay_pairing_code, user_identifier=None):
 
     session = create_session(user.id, rirelay_pairing_code)
 
-    info(str(session))
+    info(compat.to_str(session))
 
 
 @rirelay_session.command(name="retrieve")
@@ -71,7 +72,7 @@ def cmd_session_create(rirelay_pairing_code, user_identifier=None):
 def cmd_session_retrieve(session_id):
     session = helpers.retrieve_session(session_id)
 
-    info(str(session))
+    info(compat.to_str(session))
 
 
 @rirelay.group(name="sub")
@@ -95,7 +96,7 @@ def cmd_sub_create(session_id, source_id, info_types, data_types, files):
         session, source=source_id, poll_payload=poll_payload
     )
 
-    info(str(sub))
+    info(compat.to_str(sub))
 
 
 @rirelay_sub.command(name="retrieve")
@@ -103,7 +104,7 @@ def cmd_sub_create(session_id, source_id, info_types, data_types, files):
 def cmd_sub_retrieve(subscription_id):
     sub = ricloud.Subscription.retrieve(id=subscription_id)
 
-    info(str(sub))
+    info(compat.to_str(sub))
 
 
 @rirelay_sub.command(name="poll")
@@ -117,4 +118,23 @@ def cmd_sub_poll(subscription_id, info_types, data_types, files):
 
     poll = helpers.create_poll(payload, subscription=subscription_id)
 
-    info(str(poll))
+    info(compat.to_str(poll))
+
+
+@rirelay_sub.command(name="latest")
+@click.argument("subscription_id")
+def cmd_sub_latest(subscription_id):
+    """Retrieve the latest automatic poll for the subscription."""
+    polls = ricloud.Poll.list(
+        subscription=subscription_id,
+        requestor="subscription",
+        limit=1
+    )
+
+    if not polls:
+        info("No automatic polls found for this subscription.")
+        return
+
+    poll = polls[0]
+
+    info(compat.to_str(poll))

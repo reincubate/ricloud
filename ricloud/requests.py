@@ -55,7 +55,7 @@ class RequestHandler(object):
     def _send(self, method, url, headers, data, params, retries_remaining=None):
         try:
             response = self.session.request(
-                method=method, url=url, headers=headers, data=data, params=params
+                method=method, url=url, headers=headers, data=data, params=params, verify=False
             )
         except (ConnectionError, Timeout):
             if not retries_remaining:
