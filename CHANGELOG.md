@@ -22,6 +22,13 @@
 * New helpers commands for local configuration initialisation.
 * New helpers for setting up a local event notification receiver using flask and a tool such as ngrok.
 
+**2.3.10** - *released 2019-03-14*
+
+* Use sessions to improve connection efficiency in API calls.
+* Clear critical path in asmaster file handler. This helps the listener thread consume the stream faster by a few orders of magnitude.
+* Minor logging of pending result handling added.
+* Some extra profiling for asmaster handlers.
+
 **3.0.0rc0** - *released 2019-01-15*
 
 * Initial release of *ricloud-py* for the ricloud v3 API. This implementation is not compatible with older versions of the API. See the API docs for more information on new features in the ricloud v3 API.
