@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import shutil
 
 from ricloud import compat

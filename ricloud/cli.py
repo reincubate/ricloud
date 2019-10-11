@@ -55,7 +55,7 @@ def view():
     for section in settings.sections():
         click.echo("[{}]".format(section))
         for name, value in settings.items(section):
-            click.echo("{}: {}".format(name, value))
+            click.echo("{} = {}".format(name, value))
         click.echo()  # Separate sections by newline.
 
 
@@ -107,7 +107,7 @@ def storage_config_test(id):
     """Test a storage config."""
     storage_config_test_task = ricloud.StorageConfig(id=id).test()
 
-    print(storage_config_test_task)
+    click.echo(storage_config_test_task)
 
 
 @cli.group()
@@ -160,13 +160,16 @@ def listen(host, port, debug, webhook_url, only, exclude):
     if webhook_url:
         key = ricloud.Key.current()
 
-        url = utils.join_url(webhook_url, "events")
+        url = utils.join_url(webhook_url, "webhooks")
         webhook_config = ricloud.WebhookConfig.create(url=url)
 
         if key.webhook_config != webhook_config.id:
             key.update(webhook_config=webhook_config)
 
-    from ricloud.events import app
+        message = "Using webhook config with ID {}".format(webhook_config.id)
+        click.secho(message, fg="yellow")
+
+    from ricloud.webhooks import app
 
     app.config["WEBHOOK_SECRET"] = webhook_config.secret
     app.config["EVENTS_ONLY"] = only

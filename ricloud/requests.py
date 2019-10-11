@@ -5,9 +5,17 @@ import requests
 from requests.exceptions import ConnectionError, Timeout
 
 import ricloud
-from ricloud import conf
+from ricloud import conf, __version__
 from ricloud.exceptions import RequestError, ServerError
 from ricloud.utils import encode_json, decode_json
+
+
+def get_user_agent_header():
+    return "ricloud-py/{version}".format(version=__version__)
+
+
+def get_auth_header():
+    return "Token {token}".format(token=ricloud.token)
 
 
 class RequestHandler(object):
@@ -15,10 +23,18 @@ class RequestHandler(object):
         self.session = requests.Session()
 
         self.max_retries = conf.getint("api", "max_retries")
+        self.await_for = conf.get("api", "await_for")
 
-    @property
-    def auth_header(self):
-        return "Token {token}".format(token=ricloud.token)
+    def set_headers(self, headers):
+        headers = headers or {}
+
+        headers.setdefault("User-Agent", get_user_agent_header())
+        headers.setdefault("Authorization", get_auth_header())
+
+        if self.await_for:
+            headers.setdefault("Ricloud-Await", self.await_for)
+
+        return headers
 
     def get(self, url, headers=None, params=None):
         return self.send("GET", url, headers=headers, params=params)
@@ -32,9 +48,7 @@ class RequestHandler(object):
         return self.send("DELETE", url, headers=headers)
 
     def send(self, method, url, headers=None, data=None, params=None):
-        headers = headers or {}
-
-        headers["Authorization"] = self.auth_header
+        headers = self.set_headers(headers)
 
         response = self._send(
             method=method,

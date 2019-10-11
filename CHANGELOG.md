@@ -1,3 +1,10 @@
+**3.0.0** - *released 2019-10-11*
+
+* Implement await response mechanism. This can be configured via the `await_for` setting under the `api` section of the ricloud configuration file.
+* Rename `events` client module to `webhooks`.
+* Fix for storage and webhook config test calls.
+* Start passing client details in User-Agent header.
+
 **3.0.0rc3** - *released 2019-10-03*
 
 * Fix for config viewing cli command.

@@ -10,12 +10,12 @@ from ricloud.utils import decode_json, encode_json
 app = Flask(__name__)
 
 
-RICLOUD_EVENTS_SECRET = conf.get("events", "secret")
-RICLOUD_EVENTS_DELTA = conf.getint("events", "delta")
+RICLOUD_EVENTS_SECRET = conf.get("webhooks", "secret")
+RICLOUD_EVENTS_DELTA = conf.getint("webhooks", "delta")
 
 
-@app.route("/events/<uuid:event_id>", methods=["post"])
-def events(event_id):
+@app.route("/webhooks/<uuid:event_id>", methods=["post"])
+def webhooks(event_id):
     if not request.json:
         abort(400)
 
@@ -54,6 +54,9 @@ def handle_event(data, only=None, exclude=None):
     event_type = data["type"]
     event_action = data["action"]
     event_slug = event_type + "." + event_action
+
+    if event_slug == "webhook_config.test":
+        print("Test event received!")
 
     if only and event_slug not in only:
         return

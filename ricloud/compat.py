@@ -18,6 +18,7 @@ if PY3:
     def to_str(data):
         return str(data)
 
+
 else:
     from collections import MutableMapping, MutableSequence
     from ConfigParser import RawConfigParser

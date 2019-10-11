@@ -21,7 +21,7 @@ class ABConfigResource(
 
     def test(self):
         test_url = self.instance_url + "/test"
-        response = self.request_handler.get(test_url)
+        response, _ = self.request_handler.post(test_url)
         return Task(attrs=response)
 
 

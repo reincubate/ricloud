@@ -39,7 +39,7 @@ def markdown2rst(path):
 setup(
     name=PACKAGE_NAME,
 
-    version='3.0.0rc3',
+    version='3.0.0',
 
     description="Python client for Reincubate's ricloud API.",
     long_description=markdown2rst('README.md'),

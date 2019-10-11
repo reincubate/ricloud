@@ -126,9 +126,7 @@ def cmd_sub_poll(subscription_id, info_types, data_types, files):
 def cmd_sub_latest(subscription_id):
     """Retrieve the latest automatic poll for the subscription."""
     polls = ricloud.Poll.list(
-        subscription=subscription_id,
-        requestor="subscription",
-        limit=1
+        subscription=subscription_id, requestor="subscription", limit=1
     )
 
     if not polls:
