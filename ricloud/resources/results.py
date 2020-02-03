@@ -15,5 +15,5 @@ class Result(abase.ListableResource):
 
     def acknowledge(self):
         url = self.instance_url + "/ack"
-        response = self.request_handler.get(url)
+        response, _ = self.request_handler.post(url)
         self.attrs.update(response)

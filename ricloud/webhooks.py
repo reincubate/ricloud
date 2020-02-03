@@ -2,35 +2,31 @@ from __future__ import absolute_import, print_function
 
 from flask import Flask, request, abort
 
-from ricloud import conf
 from ricloud.signing import Signature
-from ricloud.utils import decode_json, encode_json
+from ricloud.utils import encode_json
 
 
 app = Flask(__name__)
 
 
-RICLOUD_EVENTS_SECRET = conf.get("webhooks", "secret")
-RICLOUD_EVENTS_DELTA = conf.getint("webhooks", "delta")
-
-
 @app.route("/webhooks/<uuid:event_id>", methods=["post"])
 def webhooks(event_id):
-    if not request.json:
+    if not request.is_json:
         abort(400)
 
-    webhook_secret = app.config.get("WEBHOOK_SECRET", RICLOUD_EVENTS_SECRET)
+    webhook_secret = app.config.get("WEBHOOK_SECRET")
+    webhook_delta = app.config.get("WEBHOOK_DELTA")
 
-    if webhook_secret and not verify_request(request, webhook_secret):
+    if webhook_secret and not verify_request(
+        request, webhook_secret, delta=webhook_delta
+    ):
         abort(400)
-
-    data = decode_json(request.json)
 
     only = app.config.get("EVENTS_ONLY")
     exclude = app.config.get("EVENTS_EXCLUDE")
 
     try:
-        handle_event(data, only=only, exclude=exclude)
+        handle_event(request.json, only=only, exclude=exclude)
     except Exception as exc:
         print("Exception occurred during event handling:", str(exc))
         abort(400)
@@ -38,11 +34,11 @@ def webhooks(event_id):
     return "OK"
 
 
-def verify_request(request, secret, delta=RICLOUD_EVENTS_DELTA):
-    signature = Signature.from_header(request.headers.get("Ricloud-Signature"))
+def verify_request(request, secret, delta=600):
+    signature = Signature.from_header(request.headers["Ricloud-Signature"])
 
     try:
-        signature.verify(request.json, secret, delta=delta)
+        signature.verify(request.data, secret, delta=delta)
     except Signature.SignatureError as exc:
         print("Event signature verification failed:", str(exc))
         return False

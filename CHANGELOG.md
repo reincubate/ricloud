@@ -1,3 +1,15 @@
+**3.1.0** - *released 2020-02-03*
+
+* Update iCloud sample commands to be more modular.
+* Add iCloud sample commands for downloading poll results. This includes cascading polls to get files referenced in retrieved JSON data.
+* Fix result resource ack action.
+* Change iCloud sample to abort on task timeout.
+* Flask sample webhook receiver review.
+
+**3.0.1** - *released 2019-10-11*
+
+* Quickfix for requests module.
+
 **3.0.0** - *released 2019-10-11*
 
 * Implement await response mechanism. This can be configured via the `await_for` setting under the `api` section of the ricloud configuration file.

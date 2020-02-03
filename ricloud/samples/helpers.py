@@ -78,6 +78,11 @@ def await_poll(poll):
     if poll.state == "failed":
         warn("Poll failed with error: `{}`".format(poll.error))
         raise click.Abort
+    elif poll.state == "pending":
+        warn((
+            "Poll {poll_id} did not to complete within client timeout. "
+            "Please retrieve it using: ricloud icloud poll retrieve {poll_id}"
+        ).format(poll_id=poll["id"]))
     else:
         success("Poll {} completed.".format(poll.id))
 
@@ -103,31 +108,70 @@ def create_poll(payload, session=None, source=None, subscription=None):
     return poll
 
 
-def process_poll_results(poll):
-    success("Processing results:")
-    results = {}
+def process_poll_results(poll, only=None, cascade=False, limit=None):
+    info("Downloading results...")
 
-    for result in poll.results:
-        identifier = result["identifier"]
+    if only:
+        results = [result for result in poll.results if result["identifier"] in only]
+    else:
+        results = poll.results
 
-        success(" - identifier {}".format(identifier))
-        success("   stored at {}".format(result["url"]))
+    return download_results(results, cascade=cascade, limit=limit, poll=poll)
 
-        filename = utils.escape(identifier)
-        filename = utils.get_filename(poll.id, filename)
 
-        storage.download_result(result["url"], to_filename=filename)
-
-        if result["type"] == "json":
-            with open(filename, "rb") as f:
-                raw_result_data = f.read()
-            result_data = utils.decode_json(raw_result_data)
-            results[identifier] = result_data
+def download_results(results, cascade=False, limit=None, poll=None):
+    result_data = {}
+    files = {}
+    
+    for result in results:
+        download, is_json = download_result(result, poll=poll)
+        import pdb; pdb.set_trace()
+        if is_json:
+            result_data[result["identifier"]] = download
         else:
-            results[identifier] = filename
+            files[result["identifier"]] = download
 
-        success("   downloaded locally to {}".format(filename))
-    return results
+        if is_json and cascade:
+            file_ids = parse_file_ids_from_result_data(download)
+
+            if limit:
+                file_ids = file_ids[:limit]
+
+            payload = {"files": file_ids}
+
+            cascade_poll = create_poll(payload, session=poll["session"], source=poll["source"])
+
+            _, cascade_files = download_results(cascade_poll.results, poll=poll)
+
+            files.update(cascade_files)
+
+    return result_data, files
+
+
+def download_result(result, to_filename=None, poll=None):
+    success("Downloading result {}:".format(result["id"]))
+    success(" - identifier {}".format(result["identifier"]))
+    success(" - stored at {}".format(result["url"]))
+
+    if not to_filename:
+        to_filename = utils.escape(result["identifier"])
+        poll_id = poll["id"] if poll else result["poll"]
+        to_filename = utils.get_filename(poll_id, to_filename)
+
+    storage.download_result(result["url"], to_filename=to_filename)
+
+    is_json = (result["type"] == "json")
+
+    if is_json:
+        with open(to_filename, "rb") as f:
+            raw_result_data = f.read()
+        result_data = utils.decode_json(raw_result_data)
+        download =  result_data
+    else:
+        download = to_filename
+
+    success(" - downloaded to {}".format(to_filename))
+    return download, is_json
 
 
 def parse_file_ids_from_result_data(result_data):
@@ -138,4 +182,7 @@ def parse_file_ids_from_result_data(result_data):
             file_ids.append(data_entry["files"][0]["id"])
         elif "file" in data_entry:
             file_ids.append(data_entry["file"]["id"])
+        elif "attachments" in data_entry:
+            ids = [f["file_id"] for f in data_entry["attachments"] if "dtouch" not in f["file_id"]]
+            file_ids.extend(ids)
     return file_ids

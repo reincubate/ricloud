@@ -157,6 +157,11 @@ def listen(host, port, debug, webhook_url, only, exclude):
 
     The default handler simply echos received event data to stdout.
     """
+    from ricloud import conf
+
+    webhook_secret = conf.get("webhooks", "secret")
+    webhook_delta = conf.getint("webhooks", "delta")
+
     if webhook_url:
         key = ricloud.Key.current()
 
@@ -169,9 +174,12 @@ def listen(host, port, debug, webhook_url, only, exclude):
         message = "Using webhook config with ID {}".format(webhook_config.id)
         click.secho(message, fg="yellow")
 
+        webhook_secret = webhook_config.secret
+
     from ricloud.webhooks import app
 
-    app.config["WEBHOOK_SECRET"] = webhook_config.secret
+    app.config["WEBHOOK_SECRET"] = webhook_secret
+    app.config["WEBHOOK_DELTA"] = webhook_delta
     app.config["EVENTS_ONLY"] = only
     app.config["EVENTS_EXCLUDE"] = exclude
 
