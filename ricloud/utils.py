@@ -35,7 +35,7 @@ def generate_timestamp():
     return int(time.time())
 
 
-def _encode(data):
+def encode(data):
     """Adapted from Django source:
     https://github.com/django/django/blob/master/django/core/serializers/json.py
     """
@@ -63,7 +63,7 @@ def _encode(data):
 
 class DataEncoder(json.JSONEncoder):
     def default(self, data):
-        encoded_data = _encode(data)
+        encoded_data = encode(data)
 
         if encoded_data is None:
             return super(DataEncoder, self).default(data)

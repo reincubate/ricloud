@@ -125,7 +125,7 @@ def download_results(results, cascade=False, limit=None, poll=None):
     
     for result in results:
         download, is_json = download_result(result, poll=poll)
-        import pdb; pdb.set_trace()
+
         if is_json:
             result_data[result["identifier"]] = download
         else:

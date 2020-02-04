@@ -94,6 +94,40 @@ def cmd_session_retrieve(session_id):
     info(compat.to_str(session))
 
 
+@icloud_session.command(name="latest")
+@click.argument("source_identifier")
+@click.option("--user-identifier", "user_identifier", help="Optional. The `identifier` attribute of the User resource to associate this request with.",)
+def cmd_session_latest(source_identifier, user_identifier=None):
+    user = helpers.get_or_create_user(user_identifier)
+
+    sources = ricloud.Source.list(
+        user=user,
+        identifier=source_identifier
+    )
+
+    if sources.data:
+        source = sources.data[0]
+    else:
+        warn("No sources (identifier:{src_identifier}) found for user (identifier:{usr.identifier}).".format(
+            src_identifier=source_identifier, usr=user
+        ))
+        raise click.Abort
+
+    sessions = ricloud.Session.list(
+        source=source,
+        state='active',
+        limit=1
+    )
+
+    if sessions.data:
+        session = sessions.data[0]
+    else:
+        warn("No active sessions exist for source (id:{src.id}, identifier:{src.identifier}).".format(src=source))
+        raise click.Abort
+
+    info(compat.to_str(session))
+
+
 @icloud.group(name="poll")
 def icloud_poll():
     pass
@@ -117,6 +151,20 @@ def cmd_poll_create(session_id, source_id, info_types, data_types, files):
 @click.argument("poll_id")
 def cmd_poll_retrieve(poll_id):
     poll = ricloud.Poll.retrieve(id=poll_id)
+
+    info(compat.to_str(poll))
+
+
+@icloud_poll.command(name="latest")
+@click.argument("session_id")
+def cmd_poll_latest(session_id):
+    polls = ricloud.Poll.list(session=session_id, limit=1)
+
+    if polls.data:
+        poll = polls.data[0]
+    else:
+        warn("No polls found for session (id:{})".format(session_id))
+        raise click.Abort
 
     info(compat.to_str(poll))
 

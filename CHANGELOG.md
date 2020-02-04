@@ -1,3 +1,9 @@
+**3.1.1** - *released 2020-02-04*
+
+* Add latest session and latest poll commands to iCloud sample.
+* Encode GET request parameters using same scheme as JSON payloads.
+* Fix some trailing debug.
+
 **3.1.0** - *released 2020-02-03*
 
 * Update iCloud sample commands to be more modular.

@@ -7,7 +7,7 @@ from requests.exceptions import ConnectionError, Timeout
 import ricloud
 from ricloud import conf, __version__
 from ricloud.exceptions import RequestError, ServerError
-from ricloud.utils import encode_json, decode_json
+from ricloud.utils import encode, encode_json, decode_json
 
 
 def get_user_agent_header():
@@ -37,6 +37,11 @@ class RequestHandler(object):
         return headers
 
     def get(self, url, headers=None, params=None):
+        if params:
+            for param, value in params.items():
+                encoded_value = encode(value)
+                params[param] = encoded_value if encoded_value is not None else value
+
         return self.send("GET", url, headers=headers, params=params)
 
     def post(self, url, headers=None, data=None):
