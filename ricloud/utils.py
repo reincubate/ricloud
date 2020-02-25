@@ -35,7 +35,7 @@ def generate_timestamp():
     return int(time.time())
 
 
-def encode(data):
+def _encode(data):
     """Adapted from Django source:
     https://github.com/django/django/blob/master/django/core/serializers/json.py
     """
@@ -57,18 +57,46 @@ def encode(data):
         return data.total_seconds()
     elif isinstance(data, (decimal.Decimal, uuid.UUID)):
         return compat.to_str(data)
-    elif isinstance(data, ricloud.resources.abase.ABResource):
+
+
+def encode(data):
+    encoded_data = _encode(data)
+
+    if encoded_data is not None:
+        return encoded_data
+    elif isinstance(data, ricloud.resources.abase.Resource):
         return data.id
+    elif isinstance(data, ricloud.resources.abase.List):
+        return data.data
+
+
+def expanded_encode(data):
+    encoded_data = _encode(data)
+
+    if encoded_data is not None:
+        return encoded_data
+    elif isinstance(data, ricloud.resources.abase.ABResource):
+        return data.attrs
 
 
 class DataEncoder(json.JSONEncoder):
+    encode_fn = staticmethod(encode)
+
     def default(self, data):
-        encoded_data = encode(data)
+        encoded_data = self.encode_fn(data)
 
         if encoded_data is None:
             return super(DataEncoder, self).default(data)
 
         return encoded_data
+
+
+class ExpandedDataEncoder(DataEncoder):
+    encode_fn = staticmethod(expanded_encode)
+
+
+def pretty_print(data):
+    return json.dumps(data, indent=2, cls=ExpandedDataEncoder, ensure_ascii=False)
 
 
 def encode_json(data, indent=None):

@@ -5,7 +5,7 @@ import sys
 PY3 = sys.version_info[0] >= 3
 
 if PY3:
-    from collections.abc import MutableMapping, MutableSequence
+    from collections.abc import Mapping, MutableMapping, MutableSequence
     from configparser import RawConfigParser
     from urllib.parse import urljoin, urlsplit, quote
 
@@ -20,7 +20,7 @@ if PY3:
 
 
 else:
-    from collections import MutableMapping, MutableSequence
+    from collections import Mapping, MutableMapping, MutableSequence
     from ConfigParser import RawConfigParser
     from urlparse import urljoin, urlsplit
     from urllib import quote

@@ -1,3 +1,5 @@
+ipython
+
 # Code formatting
 black
 

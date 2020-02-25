@@ -1,3 +1,9 @@
+**3.2.0** - *released 2020-02-25*
+
+* Update the base Resource implementation to correctly cast nested lists and other nested resource objects from API responses to their corresponding Python resource object.
+* Clean up tests.
+* Clean up testing and dev utilities.
+
 **3.1.1** - *released 2020-02-04*
 
 * Add latest session and latest poll commands to iCloud sample.

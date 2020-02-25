@@ -30,23 +30,27 @@ def create_session(user_id, icloud_username, icloud_password, icloud_mfa_code=No
     await_response(session)
 
     if session.state == "failed":
-        session = handle_session_creation_failure(session, icloud_username, icloud_password, icloud_mfa_code)
+        session = handle_session_creation_failure(
+            session, icloud_username, icloud_password, icloud_mfa_code
+        )
     elif session.state == "pending":
-        warn((
-            "Session {session_id} could not be initialised within client timeout.\n"
-            "Please retrieve it to check initialisation status:\n"
-            "\tricloud icloud session retrieve {session_id}"
-        ).format(
-            session_id=session.id
-        ))
+        warn(
+            (
+                "Session {session_id} could not be initialised within client timeout.\n"
+                "Please retrieve it to check initialisation status:\n"
+                "\tricloud icloud session retrieve {session_id}"
+            ).format(session_id=session.id)
+        )
         raise click.Abort
-
-    success("Session created: {}".format(session.id))
+    else:
+        success("Session created: {}".format(session.id))
 
     return session
 
 
-def handle_session_creation_failure(session, icloud_username, icloud_password, icloud_mfa_code):
+def handle_session_creation_failure(
+    session, icloud_username, icloud_password, icloud_mfa_code
+):
     if session.error == "code-required":
         if not icloud_mfa_code:
             info("Multi-factor authentication is on for this account.")
@@ -55,7 +59,9 @@ def handle_session_creation_failure(session, icloud_username, icloud_password, i
 
         code = prompt("Please enter the received code")
 
-        return create_session(session.user, icloud_username, icloud_password, icloud_mfa_code=code)
+        return create_session(
+            session.user, icloud_username, icloud_password, icloud_mfa_code=code
+        )
 
     warn("Session initialisation failed with error: `{}`.".format(session.error))
 
@@ -74,10 +80,16 @@ def icloud_session():
 
 @icloud_session.command(name="create")
 @click.argument("icloud_username")
-@click.password_option("--icloud-password",
-    confirmation_prompt=False, help="The password of the iCloud account to access."
+@click.password_option(
+    "--icloud-password",
+    confirmation_prompt=False,
+    help="The password of the iCloud account to access.",
 )
-@click.option("--user-identifier", "user_identifier", help="Optional. The `identifier` attribute of the User resource to associate this request with.",)
+@click.option(
+    "--user-identifier",
+    "user_identifier",
+    help="Optional. The `identifier` attribute of the User resource to associate this request with.",
+)
 def cmd_session_create(icloud_username, icloud_password, user_identifier=None):
     user = helpers.get_or_create_user(user_identifier)
 
@@ -96,33 +108,36 @@ def cmd_session_retrieve(session_id):
 
 @icloud_session.command(name="latest")
 @click.argument("source_identifier")
-@click.option("--user-identifier", "user_identifier", help="Optional. The `identifier` attribute of the User resource to associate this request with.",)
+@click.option(
+    "--user-identifier",
+    "user_identifier",
+    help="Optional. The `identifier` attribute of the User resource to associate this request with.",
+)
 def cmd_session_latest(source_identifier, user_identifier=None):
     user = helpers.get_or_create_user(user_identifier)
 
-    sources = ricloud.Source.list(
-        user=user,
-        identifier=source_identifier
-    )
+    sources = ricloud.Source.list(user=user, identifier=source_identifier)
 
     if sources.data:
         source = sources.data[0]
     else:
-        warn("No sources (identifier:{src_identifier}) found for user (identifier:{usr.identifier}).".format(
-            src_identifier=source_identifier, usr=user
-        ))
+        warn(
+            "No sources (identifier:{src_identifier}) found for user (identifier:{usr.identifier}).".format(
+                src_identifier=source_identifier, usr=user
+            )
+        )
         raise click.Abort
 
-    sessions = ricloud.Session.list(
-        source=source,
-        state='active',
-        limit=1
-    )
+    sessions = ricloud.Session.list(source=source, state="active", limit=1)
 
     if sessions.data:
         session = sessions.data[0]
     else:
-        warn("No active sessions exist for source (id:{src.id}, identifier:{src.identifier}).".format(src=source))
+        warn(
+            "No active sessions exist for source (id:{src.id}, identifier:{src.identifier}).".format(
+                src=source
+            )
+        )
         raise click.Abort
 
     info(compat.to_str(session))
@@ -135,7 +150,11 @@ def icloud_poll():
 
 @icloud_poll.command(name="create")
 @click.argument("session_id")
-@click.option("--source-id", type=str, help="The source to target, if different from the session's primary source.")
+@click.option(
+    "--source-id",
+    type=str,
+    help="The source to target, if different from the session's primary source.",
+)
 @click.option("--info-types", type=str, help="The info types to be polled.")
 @click.option("--data-types", type=str, help="The data types to be polled.")
 @click.option("--files", type=str, help="The files to be polled for.")
@@ -171,14 +190,30 @@ def cmd_poll_latest(session_id):
 
 @icloud_poll.command(name="download")
 @click.argument("poll_id")
-@click.option("--only", type=str, help="Only download results with particular identifiers. Can be a single identifier or comma-separated list of identifiers.")
-@click.option("--cascade", type=bool, default=True, help="Create an additional poll to retrieve files found in the initial poll's results.")
-@click.option("--limit", type=int, default=5, help="Only download the first n files from each result data type.")
+@click.option(
+    "--only",
+    type=str,
+    help="Only download results with particular identifiers. Can be a single identifier or comma-separated list of identifiers.",
+)
+@click.option(
+    "--cascade",
+    type=bool,
+    default=True,
+    help="Create an additional poll to retrieve files found in the initial poll's results.",
+)
+@click.option(
+    "--limit",
+    type=int,
+    default=5,
+    help="Only download the first n files from each result data type.",
+)
 def cmd_poll_download(poll_id, only, cascade, limit):
     """"Download results created from a data poll."""
     poll = ricloud.Poll.retrieve(id=poll_id)
 
-    data, files = helpers.process_poll_results(poll, only=only, cascade=cascade, limit=limit)
+    data, files = helpers.process_poll_results(
+        poll, only=only, cascade=cascade, limit=limit
+    )
 
 
 @icloud.group(name="result")

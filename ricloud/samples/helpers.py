@@ -79,10 +79,12 @@ def await_poll(poll):
         warn("Poll failed with error: `{}`".format(poll.error))
         raise click.Abort
     elif poll.state == "pending":
-        warn((
-            "Poll {poll_id} did not to complete within client timeout. "
-            "Please retrieve it using: ricloud icloud poll retrieve {poll_id}"
-        ).format(poll_id=poll["id"]))
+        warn(
+            (
+                "Poll {poll_id} did not to complete within client timeout. "
+                "Please retrieve it using: ricloud icloud poll retrieve {poll_id}"
+            ).format(poll_id=poll["id"])
+        )
     else:
         success("Poll {} completed.".format(poll.id))
 
@@ -122,7 +124,7 @@ def process_poll_results(poll, only=None, cascade=False, limit=None):
 def download_results(results, cascade=False, limit=None, poll=None):
     result_data = {}
     files = {}
-    
+
     for result in results:
         download, is_json = download_result(result, poll=poll)
 
@@ -139,7 +141,9 @@ def download_results(results, cascade=False, limit=None, poll=None):
 
             payload = {"files": file_ids}
 
-            cascade_poll = create_poll(payload, session=poll["session"], source=poll["source"])
+            cascade_poll = create_poll(
+                payload, session=poll["session"], source=poll["source"]
+            )
 
             _, cascade_files = download_results(cascade_poll.results, poll=poll)
 
@@ -160,13 +164,13 @@ def download_result(result, to_filename=None, poll=None):
 
     storage.download_result(result["url"], to_filename=to_filename)
 
-    is_json = (result["type"] == "json")
+    is_json = result["type"] == "json"
 
     if is_json:
         with open(to_filename, "rb") as f:
             raw_result_data = f.read()
         result_data = utils.decode_json(raw_result_data)
-        download =  result_data
+        download = result_data
     else:
         download = to_filename
 
@@ -183,6 +187,10 @@ def parse_file_ids_from_result_data(result_data):
         elif "file" in data_entry:
             file_ids.append(data_entry["file"]["id"])
         elif "attachments" in data_entry:
-            ids = [f["file_id"] for f in data_entry["attachments"] if "dtouch" not in f["file_id"]]
+            ids = [
+                f["file_id"]
+                for f in data_entry["attachments"]
+                if "dtouch" not in f["file_id"]
+            ]
             file_ids.extend(ids)
     return file_ids
